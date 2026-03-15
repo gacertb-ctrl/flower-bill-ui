@@ -1,0 +1,216 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+/* Minimal SaaS Foundational Layout */
+.saas-card {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-fast);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.saas-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.saas-card-header {
+  background-color: transparent;
+  border-bottom: 1px solid var(--border-color);
+  padding: 1.25rem 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+}
+
+.saas-card-body {
+  padding: 1.5rem;
+}
+
+/* Styled Forms and Inputs (Minimal) */
+.form-control,
+.form-select {
+  background: var(--surface) !important;
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--border-color) !important;
+  padding: 0.6rem 1rem !important;
+  color: var(--text-primary) !important;
+  transition: var(--transition-fast) !important;
+  box-shadow: none !important;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.1) !important; /* Subtle focus ring */
+  outline: none;
+}
+
+/* Minimal Buttons */
+.btn {
+  border-radius: var(--radius-md) !important;
+  font-weight: 500 !important;
+  padding: 0.5rem 1rem !important;
+  transition: var(--transition-fast) !important;
+  border: 1px solid transparent !important;
+}
+
+.btn-primary {
+  background: var(--primary) !important;
+  color: #fff !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background: #000000 !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.btn-secondary,
+.btn-light,
+.btn-outline-primary {
+  background: var(--surface) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.btn-secondary:hover,
+.btn-light:hover,
+.btn-outline-primary:hover {
+  background: var(--bg-color) !important;
+}
+
+/* Minimal Tables */
+.table-responsive {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: var(--surface);
+  box-shadow: none;
+}
+
+.table th {
+  background-color: var(--bg-color) !important;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-color) !important;
+  padding: 1rem 1.25rem !important;
+  border-top: none !important;
+}
+
+.table td {
+  vertical-align: middle;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color) !important;
+  padding: 1rem 1.25rem !important;
+}
+
+.table tbody tr:hover td {
+  background-color: var(--bg-color) !important;
+}
+
+/* Global Layout Grid */
+.layout-wrapper {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-color);
+}
+
+.main-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background-color: var(--bg-color);
+}
+
+.page-container {
+  padding: 2rem;
+  flex-grow: 1;
+}
+
+/* =========================================
+   Animations Utilities
+========================================= */
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+  /* Starts hidden */
+}
+
+.delay-1 {
+  animation-delay: 0.1s;
+}
+
+.delay-2 {
+  animation-delay: 0.2s;
+}
+
+.delay-3 {
+  animation-delay: 0.3s;
+}
+
+.delay-4 {
+  animation-delay: 0.4s;
+}
+
+.delay-5 {
+  animation-delay: 0.5s;
+}
+
+.App-header {
+  background-color: var(--surface);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: var(--text-primary);
+}
+
+.App-link {
+  color: var(--primary);
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

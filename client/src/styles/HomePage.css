@@ -1,0 +1,73 @@
+.dashboard-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.dashboard-row {
+    display: grid;
+    gap: 1.5rem;
+}
+
+/* Row 1: Top Metrics (2/3 width Main Info + 1/3 width Monthly Progress) */
+.top-metrics {
+    grid-template-columns: 2fr 1fr;
+}
+
+.hero-metric {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--surface) 0%, #f9fafb 100%);
+    border-left: 4px solid var(--primary);
+}
+
+.hero-metric .saas-card-body {
+    padding: 2.5rem 2rem;
+}
+
+.small-stat {
+    border-right: 1px solid var(--border-color);
+    padding-right: 1.5rem;
+}
+
+.small-stat:last-child {
+    border-right: none;
+}
+
+/* Row 2: Middle Section (2/3 line chart + 1/3 Tasks List) */
+.middle-section {
+    grid-template-columns: 2fr 1fr;
+}
+
+.task-item {
+    transition: var(--transition-fast);
+}
+
+.task-item:hover {
+    background-color: var(--bg-color);
+}
+
+/* Row 3: Bottom Section */
+.project-box {
+    border-color: var(--border-color) !important;
+    background-color: var(--surface);
+    cursor: pointer;
+}
+
+.hover-shadow:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.transition-fast {
+    transition: var(--transition-fast);
+}
+
+/* Responsive Overrides */
+@media (max-width: 991.98px) {
+    .top-metrics,
+    .middle-section {
+        grid-template-columns: 1fr;
+    }
+}
