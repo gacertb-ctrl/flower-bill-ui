@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { getReportSummary, getTamilMonths, updateSupplierOD } from '../api/reportAPI.jsx';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCloudDownload, faSync } from '@fortawesome/free-solid-svg-icons';
+import { faWhatsapp } from '@fortawesome/free-brands-svg-icons';
+import { sendWhatsAppReport } from '../api/whatsappAPI';
 import '../styles/bootstrap.min.css';
 
 const ReportPage = () => {
@@ -15,6 +17,7 @@ const ReportPage = () => {
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [tableData, setTableData] = useState([]);
     const [isUpdatingOD, setIsUpdatingOD] = useState(false);
+    const [isSendingWS, setIsSendingWS] = useState(null); // Will store row index or 'all'
 
     useEffect(() => {
         const fetchMonths = async () => {
@@ -82,6 +85,34 @@ const ReportPage = () => {
 
         // Open in new tab
         window.open(url, '_blank');
+    };
+
+    const handleSendWhatsApp = async (row, index) => {
+        const contactNo = row.customer_supplier_contact_no;
+        if (!contactNo) {
+            alert(t('No contact number found for this customer'));
+            return;
+        }
+
+        setIsSendingWS(index);
+        try {
+            const params = {
+                period_type: period,
+                report_type: reportType,
+                date: selectedDate,
+                month: selectedMonth,
+                year: selectedYear,
+                code: row.customer_supplier_code,
+                number: contactNo
+            };
+            await sendWhatsAppReport(params);
+            alert(t('Report sent successfully!'));
+        } catch (error) {
+            console.error('WhatsApp send error', error);
+            alert(t('Failed to send WhatsApp. Please check if WhatsApp is connected in Settings.'));
+        } finally {
+            setIsSendingWS(null);
+        }
     };
 
     return (
@@ -200,8 +231,19 @@ const ReportPage = () => {
                                                 <td>{row.customer_supplier_name}</td>
                                                 <td className="fw-bold text-dark">{displayAmt}</td>
                                                 <td>
-                                                    <button className="btn btn-outline-primary btn-sm rounded-circle shadow-sm" onClick={() => handleDownload(row.customer_supplier_code)}>
+                                                    <button className="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" onClick={() => handleDownload(row.customer_supplier_code)}>
                                                         <FontAwesomeIcon icon={faCloudDownload} />
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-outline-success btn-sm rounded-circle shadow-sm"
+                                                        onClick={() => handleSendWhatsApp(row, index)}
+                                                        disabled={isSendingWS === index}
+                                                    >
+                                                        {isSendingWS === index ? (
+                                                            <span className="spinner-border spinner-border-sm"></span>
+                                                        ) : (
+                                                            <FontAwesomeIcon icon={faWhatsapp} />
+                                                        )}
                                                     </button>
                                                 </td>
                                             </tr>
