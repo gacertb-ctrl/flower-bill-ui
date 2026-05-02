@@ -21,11 +21,11 @@ const ReportPeriodSelector = ({
 
   return (
     <>
-      <div className="col-md-3">
-        <div className="form-group">
-          <label>{t('reports.type')}</label>
+      <div className="col-span-1">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-nature-700 dark:text-nature-300">{t('reports.type')}</label>
           <select
-            className="form-control"
+            className="w-full px-4 py-2 bg-white/60 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50 rounded-xl focus:ring-2 focus:ring-nature-400 outline-none text-nature-800 dark:text-nature-100 transition-all"
             value={reportType}
             onChange={(e) => setReportType(e.target.value)}
           >
@@ -37,30 +37,29 @@ const ReportPeriodSelector = ({
 
       {reportPeriod === 'month' ? (
         <>
-          <div className="col-md-3">
-            <div className="form-group">
-              <label>{t('reports.month')}</label>
+          <div className="col-span-1">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-nature-700 dark:text-nature-300">{t('reports.month')}</label>
               <select
-                className="form-control"
+                className="w-full px-4 py-2 bg-white/60 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50 rounded-xl focus:ring-2 focus:ring-nature-400 outline-none text-nature-800 dark:text-nature-100 transition-all"
                 value={month}
                 onChange={(e) => setMonth(e.target.value)}
               >
                 <option value="">{t('reports.selectMonth')}</option>
                 {tamilMonths && tamilMonths.months.map((m) => (
                   <option key={m.name_en} value={m.name_en}>
-                    {/* If you want to translate months dynamically later, use t(m.name_en) */}
                     {m.name_ta}
                   </option>
                 ))}
               </select>
             </div>
           </div>
-          <div className="col-md-3">
-            <div className="form-group">
-              <label>{t('reports.year')}</label>
+          <div className="col-span-1">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-nature-700 dark:text-nature-300">{t('reports.year')}</label>
               <input
                 type="number"
-                className="form-control"
+                className="w-full px-4 py-2 bg-white/60 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50 rounded-xl focus:ring-2 focus:ring-nature-400 outline-none text-nature-800 dark:text-nature-100 transition-all"
                 value={year}
                 onChange={(e) => setYear(e.target.value)}
                 min="2000"
@@ -71,23 +70,23 @@ const ReportPeriodSelector = ({
         </>
       ) : (
         <>
-          <div className="col-md-3">
-            <div className="form-group">
-              <label>{t('reports.startDate')}</label>
+          <div className="col-span-1">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-nature-700 dark:text-nature-300">{t('reports.startDate')}</label>
               <input
                 type="date"
-                className="form-control"
+                className="w-full px-4 py-2 bg-white/60 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50 rounded-xl focus:ring-2 focus:ring-nature-400 outline-none text-nature-800 dark:text-nature-100 transition-all"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
               />
             </div>
           </div>
-          <div className="col-md-3">
-            <div className="form-group">
-              <label>{t('reports.endDate')}</label>
+          <div className="col-span-1">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-nature-700 dark:text-nature-300">{t('reports.endDate')}</label>
               <input
                 type="date"
-                className="form-control"
+                className="w-full px-4 py-2 bg-white/60 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50 rounded-xl focus:ring-2 focus:ring-nature-400 outline-none text-nature-800 dark:text-nature-100 transition-all"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
               />

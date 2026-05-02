@@ -16,9 +16,9 @@ const ReportPrintView = () => {
     const CONFIG = useMemo(() => {
         const isSales = type === 'sales';
         return {
-            itemsLimit: isSales ? 15 : 10, // Sales: 10 rows, Purchase: 15 rows
+            itemsLimit: isSales ? 15 : 8, // Sales: 10 rows, Purchase: 15 rows
             billsPerPage: isSales ? 4 : 6,  // Sales: 4 per A4, Purchase: 6 per A4
-            boxHeight: isSales ? '450px' : '330px',
+            boxHeight: isSales ? '530px' : '350px',
             tableHeight: isSales ? '300px' : '220px'
         };
     }, [type]);
@@ -33,7 +33,16 @@ const ReportPrintView = () => {
         let isMounted = true;
         const fetchData = async () => {
             try {
-                const params = Object.fromEntries([...searchParams]);
+                const queryParams = Object.fromEntries([...searchParams]);
+
+                const params = {
+                    period: queryParams.period,
+                    type: queryParams.type,
+                    date: queryParams.date,
+                    month: queryParams.month,
+                    year: queryParams.year,
+                    code: queryParams.code
+                };
                 const apiParams = {
                     period_type: params.period,
                     report_type: params.type,
@@ -49,7 +58,7 @@ const ReportPrintView = () => {
                         setData(result);
                         if (result.length > 0) {
                             setTimeout(() => {
-                                if (isMounted) window.print();
+                                // if (isMounted) window.print();
                             }, 1500);
                         }
                     } 
@@ -133,16 +142,19 @@ const ReportPrintView = () => {
                     }
                     .shop-header h5 { margin-bottom: 0; font-weight: bold; }
                     .shop-header small { font-size: 8px; }
+                    .table tbody tr {
+                        height: auto;
+                    }
                 `}</style>
                 {pageGroups.map((group, gIdx) => (
                     <div key={gIdx} className="page-break p-3 container-fluid">
                         <div className="row g-2">
                             {group.map((slot, sIdx) => {
-                                console.log("Rendering Slot:", slot);
+                                // console.log("Rendering Slot:", slot);
                                 const isOdd = (sIdx + 1) % 2 !== 0;
                                 const totalAmount = slot.items?.reduce((acc, item) => acc + parseFloat(item.total || 0), 0) || 0;
                                 const outstanding = ((parseFloat(slot.prev_debit || 0) - parseFloat(slot.prev_credit || 0)) + totalAmount) - parseFloat(slot.today_pay || 0);
-
+                                const billno = (gIdx * CONFIG.billsPerPage) + sIdx + 1;
                                 return (
                                     <div key={sIdx} className="col-6">
                                         <div className={`bill-box p-1 ${isOdd ? "me-1" : "ms-1"}`}>
@@ -156,7 +168,7 @@ const ReportPrintView = () => {
                                             <div className="row g-0 py-1 border-bottom border-dark" style={{ fontSize: '9px' }}>
                                                 <div className="col-7 ps-1">
                                                     <div className="fw-bold">{slot.customer_supplier_name} {slot.hasMultiplePages && slot.pageLabel}</div>
-                                                    <div>{(type === 'purchase') ? t('purchase_bill') : t('sales_bill')} - {gIdx + 1}</div>
+                                                    <div>{(type === 'purchase') ? t('purchase_bill') : t('sales_bill')} - {billno}</div>
                                                 </div>
                                                 <div className="col-5 text-end pe-1">
                                                     <div>{searchParams.get('date')}</div>
@@ -166,7 +178,7 @@ const ReportPrintView = () => {
 
                                             {/* Table Area */}
                                             <div className="items-area">
-                                                <table className="table table-borderless table-tight mb-0 h-100">
+                                                <table className="table table-borderless table-tight mb-0 h-100" style={{ tableLayout: 'fixed', height: '100%' }}>
                                                     <thead>
                                                         <tr className="bg-light text-center border-bottom border-dark">
                                                             <th className="border-end" width="10%">{t('no')}</th>

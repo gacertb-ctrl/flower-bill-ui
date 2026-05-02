@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getReportSummary, getTamilMonths, updateSupplierOD } from '../api/reportAPI.jsx';
+import { getWhatsAppStatus, sendReportWhatsApp } from '../api/whatsappAPI';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCloudDownload, faSync } from '@fortawesome/free-solid-svg-icons';
+import { faCloudDownload, faSync, faFileLines } from '@fortawesome/free-solid-svg-icons';
 import { faWhatsapp } from '@fortawesome/free-brands-svg-icons';
-import { sendWhatsAppReport } from '../api/whatsappAPI';
-import '../styles/bootstrap.min.css';
+import GlassCard from '../components/ui/GlassCard';
+import GlassButton from '../components/ui/GlassButton';
 
 const ReportPage = () => {
     const { t } = useTranslation();
@@ -17,7 +18,7 @@ const ReportPage = () => {
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [tableData, setTableData] = useState([]);
     const [isUpdatingOD, setIsUpdatingOD] = useState(false);
-    const [isSendingWS, setIsSendingWS] = useState(null); // Will store row index or 'all'
+    const [loadingWa, setLoadingWa] = useState(false);
 
     useEffect(() => {
         const fetchMonths = async () => {
@@ -32,20 +33,16 @@ const ReportPage = () => {
     }, []);
 
     const handleUpdateOD = async () => {
-        // 1. Validation first
         if (!selectedMonth || !selectedYear) return;
 
         if (window.confirm(t('Are you sure?'))) {
-            // 2. SET LOADING TO TRUE BEFORE TRY BLOCK
             setIsUpdatingOD(true);
-
             try {
                 await updateSupplierOD({ month: selectedMonth, year: selectedYear });
                 alert(t('Success'));
             } catch (e) {
                 console.error(e);
             } finally {
-                // 3. SET LOADING TO FALSE ONLY AFTER FINISHED
                 setIsUpdatingOD(false);
             }
         }
@@ -83,134 +80,166 @@ const ReportPage = () => {
 
         if (customerCode) url += `&code=${customerCode}`;
 
-        // Open in new tab
         window.open(url, '_blank');
     };
 
-    const handleSendWhatsApp = async (row, index) => {
-        const contactNo = row.customer_supplier_contact_no;
-        if (!contactNo) {
-            alert(t('No contact number found for this customer'));
-            return;
-        }
-
-        setIsSendingWS(index);
+    const handleSendWhatsAppSingle = async (row) => {
         try {
-            const params = {
+            setLoadingWa(true);
+            const st = await getWhatsAppStatus();
+            if (st.instance?.state !== 'open') {
+                 alert(t('Please connect WhatsApp in Settings'));
+                 setLoadingWa(false);
+                 return;
+            }
+
+            const payload = {
                 period_type: period,
                 report_type: reportType,
-                date: selectedDate,
-                month: selectedMonth,
-                year: selectedYear,
                 code: row.customer_supplier_code,
-                number: contactNo
+                number: row.customer_supplier_contact_no
             };
-            await sendWhatsAppReport(params);
-            alert(t('Report sent successfully!'));
+            
+            if (period === 'date') {
+                payload.date = selectedDate;
+            } else if (period === 'month') {
+                payload.month = selectedMonth;
+                payload.year = selectedYear;
+            }
+            
+            await sendReportWhatsApp(payload);
+            alert(`WhatsApp report sent successfully`);
         } catch (error) {
-            console.error('WhatsApp send error', error);
-            alert(t('Failed to send WhatsApp. Please check if WhatsApp is connected in Settings.'));
+            console.error('Error sending whatsapp:', error);
+            alert('Failed to send WhatsApp report. Please check your connection in Settings.');
         } finally {
-            setIsSendingWS(null);
+            setLoadingWa(false);
         }
     };
 
     return (
-        <div className="container-fluid py-4" style={{ minHeight: '100vh' }}>
-            <div className="saas-card mb-4 p-3 border-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
+            {/* Header Section */}
+            <div className="flex items-center mb-8">
+                <div className="w-12 h-12 bg-nature-100 dark:bg-nature-800 rounded-2xl flex items-center justify-center mr-4 shadow-sm border border-nature-200 dark:border-nature-700">
+                    <FontAwesomeIcon icon={faFileLines} className="text-2xl text-nature-600 dark:text-nature-300" />
+                </div>
                 <div>
-                    <h2 className="fw-bold text-primary mb-0">{t('reports.title') || 'Reports'}</h2>
-                    <p className="text-muted small mb-0">{t('Manage your business reports')}</p>
+                    <h2 className="text-2xl font-bold text-nature-800 dark:text-nature-100">{t('Reports')}</h2>
+                    <p className="text-nature-500 dark:text-nature-400 text-sm mt-1">Generate and manage system reports</p>
                 </div>
             </div>
 
-            <div className="saas-card">
-                <div className="saas-card-body">
-                    <div className="row mb-4 align-items-end">
-                        <div className="col-12 col-md-3 mb-3 mb-md-0">
-                            <label className="fw-bold text-muted small">{t('reports.period')}</label>
-                            <select className="form-select form-control" value={period} onChange={(e) => { setPeriod(e.target.value); setTableData([]); }}>
-                                <option value="" disabled>{t('reports.selectPeriod')}</option>
-                                <option value="month">{t('reports.patta')}</option>
-                                <option value="date">{t('reports.sittai')}</option>
-                            </select>
-                        </div>
-
-                        {period === 'month' && (
-                            <>
-                                <div className="col-12 col-md-3 mb-3 mb-md-0 fade-in">
-                                    <label className="fw-bold text-muted small">{t('reports.type')}</label>
-                                    <select className="form-select form-control" value={reportType} onChange={(e) => setReportType(e.target.value)}>
-                                        <option value="">{t('selectPlaceholder')}</option>
-                                        <option value="purchase">{t('purchase')}</option>
-                                        <option value="sales">{t('sales')}</option>
-                                    </select>
-                                </div>
-                                <div className="col-12 col-md-3 mb-3 mb-md-0 fade-in">
-                                    <label className="fw-bold text-muted small">{t('reports.month')}</label>
-                                    <select className="form-select form-control" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)}>
-                                        <option value="">{t('reports.selectMonth')}</option>
-                                        {tamilMonths.map((m, i) => (
-                                            <option key={i} value={m.tamil_month_name_en}>{m.tamil_month_name_ta}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="col-12 col-md-3 mb-3 mb-md-0 fade-in">
-                                    <label className="fw-bold text-muted small">{t('reports.year')}</label>
-                                    <input type="number" className="form-control" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} />
-                                </div>
-                            </>
-                        )}
-
-                        {period === 'date' && (
-                            <>
-                                <div className="col-12 col-md-3 mb-3 mb-md-0 fade-in">
-                                    <label className="fw-bold text-muted small">{t('reports.type')}</label>
-                                    <select className="form-select form-control" value={reportType} onChange={(e) => setReportType(e.target.value)}>
-                                        <option value="">{t('selectPlaceholder')}</option>
-                                        <option value="purchase">{t('purchase')}</option>
-                                        <option value="sales">{t('sales')}</option>
-                                    </select>
-                                </div>
-                                <div className="col-12 col-md-3 mb-3 mb-md-0 fade-in">
-                                    <label className="fw-bold text-muted small">{t('date')}</label>
-                                    <input type="date" className="form-control" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
-                                </div>
-                            </>
-                        )}
+            <GlassCard className="p-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="md:col-span-1">
+                        <select 
+                            className="w-full px-4 py-2.5 bg-white/60 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50 rounded-xl focus:ring-2 focus:ring-nature-400 outline-none text-nature-800 dark:text-nature-100 shadow-sm" 
+                            value={period} 
+                            onChange={(e) => { setPeriod(e.target.value); setTableData([]); }}
+                        >
+                            <option value="" disabled>{t('reports.period')}</option>
+                            <option value="month">{t('reports.patta')}</option>
+                            <option value="date">{t('reports.sittai')}</option>
+                        </select>
                     </div>
 
-                    {tableData.length > 0 && (
-                        <div className="d-flex justify-content-end mb-3 gap-2">
-                            {period === 'month' && reportType === 'purchase' && (
-                                <button
-                                    className="btn btn-warning shadow-sm fw-bold px-4"
-                                    onClick={handleUpdateOD}
-                                    disabled={isUpdatingOD}
+                    {period === 'month' && (
+                        <>
+                            <div className="md:col-span-1 animate-fade-in">
+                                <select 
+                                    className="w-full px-4 py-2.5 bg-white/60 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50 rounded-xl focus:ring-2 focus:ring-nature-400 outline-none text-nature-800 dark:text-nature-100 shadow-sm" 
+                                    value={reportType} 
+                                    onChange={(e) => setReportType(e.target.value)}
                                 >
-                                    {isUpdatingOD ? (
-                                        <><span className="spinner-border spinner-border-sm me-2"></span>{t('Updating...')}</>
-                                    ) : (
-                                        <><FontAwesomeIcon icon={faSync} className="me-2" />{t('Update Monthly OD')}</>
-                                    )}
-                                </button>
-                            )}
-                            <button className="btn btn-primary shadow-sm" onClick={() => handleDownload()}>
-                                <FontAwesomeIcon icon={faCloudDownload} className="me-2" /> {t('reports.downloadAll')}
-                            </button>
-                        </div>
+                                    <option value="">{t('reports.type')}</option>
+                                    <option value="purchase">{t('purchase')}</option>
+                                    <option value="sales">{t('sales')}</option>
+                                </select>
+                            </div>
+                            <div className="md:col-span-1 animate-fade-in">
+                                <select 
+                                    className="w-full px-4 py-2.5 bg-white/60 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50 rounded-xl focus:ring-2 focus:ring-nature-400 outline-none text-nature-800 dark:text-nature-100 shadow-sm" 
+                                    value={selectedMonth} 
+                                    onChange={(e) => setSelectedMonth(e.target.value)}
+                                >
+                                    <option value="">{t('reports.selectMonth')}</option>
+                                    {tamilMonths.map((m, i) => (
+                                        <option key={i} value={m.tamil_month_name_en}>{m.tamil_month_name_ta}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="md:col-span-1 animate-fade-in">
+                                <input 
+                                    type="number" 
+                                    className="w-full px-4 py-2.5 bg-white/60 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50 rounded-xl focus:ring-2 focus:ring-nature-400 outline-none text-nature-800 dark:text-nature-100 shadow-sm" 
+                                    value={selectedYear} 
+                                    onChange={(e) => setSelectedYear(e.target.value)} 
+                                />
+                            </div>
+                        </>
                     )}
 
-                    <div className="table-responsive rounded border-0">
-                        <table className="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th className="text-secondary text-uppercase" style={{ fontSize: '0.8rem' }}>{t('S.No')}</th>
-                                    <th className="text-secondary text-uppercase" style={{ fontSize: '0.8rem' }}>{reportType === 'purchase' ? t('supplier.name') : t('customer.name')}</th>
-                                    <th className="text-secondary text-uppercase" style={{ fontSize: '0.8rem' }}>
+                    {period === 'date' && (
+                        <>
+                            <div className="md:col-span-1 animate-fade-in">
+                                <select 
+                                    className="w-full px-4 py-2.5 bg-white/60 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50 rounded-xl focus:ring-2 focus:ring-nature-400 outline-none text-nature-800 dark:text-nature-100 shadow-sm" 
+                                    value={reportType} 
+                                    onChange={(e) => setReportType(e.target.value)}
+                                >
+                                    <option value="">{t('reports.type')}</option>
+                                    <option value="purchase">{t('purchase')}</option>
+                                    <option value="sales">{t('sales')}</option>
+                                </select>
+                            </div>
+                            <div className="md:col-span-2 animate-fade-in">
+                                <input 
+                                    type="date" 
+                                    className="w-full px-4 py-2.5 bg-white/60 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50 rounded-xl focus:ring-2 focus:ring-nature-400 outline-none text-nature-800 dark:text-nature-100 shadow-sm" 
+                                    value={selectedDate} 
+                                    onChange={(e) => setSelectedDate(e.target.value)} 
+                                />
+                            </div>
+                        </>
+                    )}
+                </div>
+            </GlassCard>
+
+            {tableData.length > 0 && (
+                <div className="mb-6 flex flex-wrap gap-4 justify-end">
+                    {period === 'month' && reportType === 'purchase' && (
+                        <GlassButton
+                            variant="secondary"
+                            className="bg-accent-gold/20 text-yellow-700 border border-accent-gold/50 hover:bg-accent-gold/30 dark:text-yellow-400"
+                            onClick={handleUpdateOD}
+                            disabled={isUpdatingOD}
+                        >
+                            {isUpdatingOD ? (
+                                <><FontAwesomeIcon icon={faSync} spin className="mr-2" /> {t('Updating...')}</>
+                            ) : (
+                                <><FontAwesomeIcon icon={faSync} className="mr-2" /> {t('Update Monthly OD')}</>
+                            )}
+                        </GlassButton>
+                    )}
+                    <GlassButton variant="primary" onClick={() => handleDownload()}>
+                        <FontAwesomeIcon icon={faCloudDownload} className="mr-2" /> {t('reports.downloadAll')}
+                    </GlassButton>
+                </div>
+            )}
+
+            {tableData.length > 0 && (
+                <GlassCard className="p-0 overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead className="bg-nature-100/50 dark:bg-nature-800/50 border-b border-nature-200 dark:border-nature-700">
+                                <tr className="text-nature-600 dark:text-nature-300">
+                                    <th className="py-4 px-6 font-semibold">{t('S.No')}</th>
+                                    <th className="py-4 px-6 font-semibold">{reportType === 'purchase' ? t('supplier.name') : t('customer.name')}</th>
+                                    <th className="py-4 px-6 font-semibold">
                                         {reportType === 'purchase' ? t('reports.creditDebit') : t('reports.debitCredit')}
                                     </th>
-                                    <th className="text-secondary text-uppercase" style={{ fontSize: '0.8rem' }}>{t('action')}</th>
+                                    <th className="py-4 px-6 font-semibold text-right">{t('action')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -225,35 +254,39 @@ const ReportPage = () => {
                                         } else {
                                             displayAmt = `${row.debit_amount} / ${row.credit_amount}`;
                                         }
+        
                                         return (
-                                            <tr key={index}>
-                                                <td>{index + 1}</td>
-                                                <td>{row.customer_supplier_name}</td>
-                                                <td className="fw-bold text-dark">{displayAmt}</td>
-                                                <td>
-                                                    <button className="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" onClick={() => handleDownload(row.customer_supplier_code)}>
-                                                        <FontAwesomeIcon icon={faCloudDownload} />
-                                                    </button>
-                                                    <button
-                                                        className="btn btn-outline-success btn-sm rounded-circle shadow-sm"
-                                                        onClick={() => handleSendWhatsApp(row, index)}
-                                                        disabled={isSendingWS === index}
-                                                    >
-                                                        {isSendingWS === index ? (
-                                                            <span className="spinner-border spinner-border-sm"></span>
-                                                        ) : (
-                                                            <FontAwesomeIcon icon={faWhatsapp} />
-                                                        )}
-                                                    </button>
+                                            <tr key={index} className="border-b border-nature-100 dark:border-nature-700/30 hover:bg-nature-50/50 dark:hover:bg-nature-800/50 transition-colors">
+                                                <td className="py-4 px-6 text-nature-600 dark:text-nature-400">{index + 1}</td>
+                                                <td className="py-4 px-6 font-medium text-nature-800 dark:text-nature-100">{row.customer_supplier_name}</td>
+                                                <td className="py-4 px-6 text-nature-800 dark:text-nature-100">{displayAmt}</td>
+                                                <td className="py-4 px-6 text-right">
+                                                    <div className="flex justify-end gap-2">
+                                                        <button 
+                                                            className="p-2 text-nature-600 hover:text-nature-800 bg-nature-100 hover:bg-nature-200 dark:bg-nature-800 dark:text-nature-300 dark:hover:bg-nature-700 rounded-lg transition-colors" 
+                                                            onClick={() => handleDownload(row.customer_supplier_code)} 
+                                                            title="Download/Print"
+                                                        >
+                                                            <FontAwesomeIcon icon={faCloudDownload} />
+                                                        </button>
+                                                        <button 
+                                                            className="p-2 text-white bg-[#25D366] hover:bg-[#128C7E] rounded-lg transition-colors shadow-sm" 
+                                                            onClick={() => handleSendWhatsAppSingle(row)} 
+                                                            title="Send WhatsApp" 
+                                                            disabled={loadingWa}
+                                                        >
+                                                            <FontAwesomeIcon icon={faWhatsapp} className="text-lg" />
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
-                                        );
-                                    })}
+                                        );                                    
+                                })}
                             </tbody>
-                            <tfoot style={{ backgroundColor: 'rgba(255,255,255,0.4)' }}>
-                                <tr className="fw-bold">
-                                    <td colSpan="2" className="text-end text-primary">{t('reports.total')}:</td>
-                                    <td className="text-primary">
+                            <tfoot className="bg-nature-50 dark:bg-nature-800/30 border-t-2 border-nature-200 dark:border-nature-700">
+                                <tr className="font-bold text-nature-800 dark:text-nature-100">
+                                    <td colSpan="2" className="py-4 px-6 text-right">{t('reports.total')}:</td>
+                                    <td className="py-4 px-6">
                                         {reportType === 'purchase' ? (
                                             <>
                                                 {tableData.reduce((acc, curr) => acc + parseFloat(curr.credit_amount || 0), 0).toFixed(2)}
@@ -273,28 +306,25 @@ const ReportPage = () => {
                             </tfoot>
                         </table>
                     </div>
-                </div>
-            </div>
-            {/* --- PLACE THE LOADER HERE (AT THE VERY END) --- */}
-            {isUpdatingOD && (
-                <div className="d-flex flex-column justify-content-center align-items-center"
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        width: '100vw',
-                        height: '100vh',
-                        backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                        zIndex: 10000,
-                        backdropFilter: 'blur(4px)'
-                    }}>
-                    <div className="bg-white p-4 rounded-4 shadow-lg text-center" style={{ minWidth: '250px' }}>
-                        <div className="spinner-border text-primary mb-3" role="status" style={{ width: '3rem', height: '3rem' }}>
-                            <span className="visually-hidden">Loading...</span>
-                        </div>
-                        <h5 className="fw-bold mb-1">{t('Processing...')}</h5>
-                        <p className="text-muted small mb-0">{t('Calculating Monthly OD')}</p>
-                    </div>
+                </GlassCard>
+            )}
+
+            {/* Loaders */}
+            {(isUpdatingOD || loadingWa) && (
+                <div className="fixed inset-0 bg-nature-900/40 backdrop-blur-sm z-50 flex flex-col justify-center items-center">
+                    <GlassCard className="p-8 text-center min-w-[250px] shadow-2xl border border-white/40 flex flex-col items-center">
+                        <FontAwesomeIcon 
+                            icon={loadingWa ? faWhatsapp : faSync} 
+                            spin={!loadingWa} 
+                            className={`text-4xl mb-4 ${loadingWa ? 'text-[#25D366] animate-bounce' : 'text-nature-600 dark:text-nature-400'}`} 
+                        />
+                        <h5 className="text-xl font-bold text-nature-800 dark:text-nature-100 mb-2">
+                            {loadingWa ? 'WhatsApp' : t('Processing...')}
+                        </h5>
+                        <p className="text-nature-600 dark:text-nature-400 text-sm">
+                            {loadingWa ? t('Sending report, please wait...') : t('Calculating Monthly OD')}
+                        </p>
+                    </GlassCard>
                 </div>
             )}
         </div>

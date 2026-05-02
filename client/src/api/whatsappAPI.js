@@ -1,21 +1,37 @@
 import apiClient from './apiClient';
 
 export const getWhatsAppStatus = async () => {
-    const response = await apiClient.get('/whatsapp/status');
-    return response.data;
+    try {
+        const response = await apiClient.get('/api/whatsapp/status');
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
 };
 
-export const getWhatsAppQRCode = async () => {
-    const response = await apiClient.get('/whatsapp/connect');
-    return response.data;
+export const connectWhatsApp = async () => {
+    try {
+        const response = await apiClient.get('/api/whatsapp/connect');
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
 };
 
 export const disconnectWhatsApp = async () => {
-    const response = await apiClient.post('/whatsapp/disconnect');
-    return response.data;
+    try {
+        const response = await apiClient.post('/api/whatsapp/disconnect');
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
 };
 
-export const sendWhatsAppReport = async (data) => {
-    const response = await apiClient.post('/whatsapp/send', data);
-    return response.data;
+export const sendReportWhatsApp = async (payload) => {
+    try {
+        const response = await apiClient.post('/api/whatsapp/send', payload);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
 };

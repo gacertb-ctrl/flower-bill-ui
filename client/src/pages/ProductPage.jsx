@@ -3,6 +3,8 @@ import Table from '../components/Table';
 import ProductModal from '../components/modals/ProductModal';
 import { useTranslation } from 'react-i18next';
 import { fetchProducts, createProduct, updateProduct, deleteProduct } from '../api/productAPI';
+import GlassCard from '../components/ui/GlassCard';
+import GlassButton from '../components/ui/GlassButton';
 
 const ProductPage = () => {
   const [showModal, setShowModal] = useState(false);
@@ -61,35 +63,32 @@ const ProductPage = () => {
   }
 
   return (
-    <div className="container-fluid py-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="h4 text-primary mb-0 fw-bold">{t('product.management') || 'Product Management'}</h2>
-        <button
-          className="btn btn-primary shadow-sm rounded-pill"
-          onClick={() => {
-            setEditData(null);
-            setShowModal(true);
-          }}
-        >
-          <i className="bi bi-plus-circle me-1"></i> {t(`${page}.add`)}
-        </button>
-      </div>
-
-      <div className="row">
-        <div className="col-12">
-          <div className="saas-card">
-            <div className="saas-card-body p-0">
-              <Table
-                page={page}
-                data={productData}
-                setShowModal={setShowModal}
-                setEditData={setEditData}
-                deleteData={deleteData}
-              />
-            </div>
-          </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
+      <GlassCard className="p-6">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+          <h2 className="text-2xl font-bold text-nature-800 dark:text-nature-100">{t(`${page}.title`) || 'Product List'}</h2>
+          <GlassButton
+            variant="primary"
+            onClick={() => {
+              setEditData(null);
+              setShowModal(true);
+            }}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+            {t(`${page}.add`)}
+          </GlassButton>
         </div>
-      </div>
+
+        <div className="overflow-x-auto w-full">
+          <Table
+            page={page}
+            data={productData}
+            setShowModal={setShowModal}
+            setEditData={setEditData}
+            deleteData={deleteData}
+          />
+        </div>
+      </GlassCard>
 
       <ProductModal
         show={showModal}
@@ -100,7 +99,6 @@ const ProductPage = () => {
         mode={editData ? 'update' : 'add'}
         initialData={editData}
         onSubmit={handleSubmit}
-      // t and lang props removed, Modal uses useTranslation internally
       />
     </div>
   );

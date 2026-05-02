@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEllipsisVertical, faCheck, faFolderOpen } from '@fortawesome/free-solid-svg-icons';
+import { faChartLine, faShoppingCart, faServer, faCircleCheck } from '@fortawesome/free-solid-svg-icons';
 import { fetchStocks } from '../api/stockAPI';
 import { getAllSalesEntries, getAllPurchaseEntries } from '../api/entryAPI';
-import '../styles/HomePage.css'; // Will create this
+import GlassCard from '../components/ui/GlassCard';
 
 const HomePage = () => {
   const { t } = useTranslation();
@@ -19,7 +19,12 @@ const HomePage = () => {
     totals: { sales: 0, purchase: 0 }
   });
 
-  const COLORS = ['#111827', '#6b7280', '#9ca3af', '#e5e7eb']; // Monochrome pie colors
+  // Nature-inspired colors for charts
+  const CHART_COLORS = {
+    sales: '#5c995c',    // nature-500
+    purchase: '#e69966', // accent-orange
+    stock: '#7ab8e6',    // accent-blue
+  };
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -77,8 +82,8 @@ const HomePage = () => {
         const totalPurchase = purchaseData.length;
 
         const pieData = [
-          { name: 'Total Sales', value: totalSales },
-          { name: 'Total Purchase', value: totalPurchase },
+          { name: t('Total Sales'), value: totalSales },
+          { name: t('Total Purchase'), value: totalPurchase },
         ];
 
         setDashboardData({
@@ -95,146 +100,132 @@ const HomePage = () => {
     };
 
     loadDashboardData();
-  }, []);
+  }, [t]);
+
+  const currentDate = new Date().toLocaleDateString('en-GB', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
 
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center vh-100">
-        <div className="spinner-border text-dark" role="status">
-          <span className="visually-hidden">{t('loading')}</span>
-        </div>
+      <div className="flex justify-center items-center h-[60vh]">
+        <div className="w-12 h-12 border-4 border-nature-200 border-t-nature-500 rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="dashboard-grid">
-      
-      {/* Top Banner mapping to "Overall Information" request */}
-      <section className="dashboard-row top-metrics">
-        <div className="saas-card metric-card hero-metric">
-           <div className="saas-card-body">
-             <h5 className="text-secondary fw-semibold">{t('total_revenue_today')}</h5>
-             <h1 className="fw-bold mt-2">₹ {dashboardData.totals.sales.toLocaleString()}</h1>
-             <div className="d-flex gap-4 mt-4">
-                 <div className="small-stat">
-                     <span className="text-muted d-block small">{t('total_sales_hash')}</span>
-                     <span className="fw-bold">{dashboardData.pieData[0].value}</span>
-                 </div>
-                 <div className="small-stat">
-                     <span className="text-muted d-block small">{t('total_purchase_hash')}</span>
-                     <span className="fw-bold">{dashboardData.pieData[1].value}</span>
-                 </div>
-                 <div className="small-stat">
-                     <span className="text-muted d-block small">{t('purchase_cost')}</span>
-                     <span className="fw-bold">₹ {dashboardData.totals.purchase.toLocaleString()}</span>
-                 </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+        <div>
+          <h2 className="text-3xl font-bold text-nature-800 dark:text-nature-100 tracking-tight">{t("Today's Overview")}</h2>
+          <p className="text-nature-500 dark:text-nature-400 mt-1">{currentDate}</p>
+        </div>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <GlassCard className="p-6 relative overflow-hidden group bg-white/70 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50">
+          <div className="absolute -right-6 -top-6 w-24 h-24 bg-nature-100 dark:bg-nature-800/80 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-500"></div>
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <h5 className="text-sm font-bold text-nature-500 dark:text-nature-400 mb-2 uppercase tracking-wider">{t('Total Sales')}</h5>
+              <h3 className="text-4xl font-extrabold text-nature-800 dark:text-nature-100">₹ {dashboardData.totals.sales.toLocaleString()}</h3>
+            </div>
+            <div className="w-12 h-12 rounded-2xl bg-nature-100 dark:bg-nature-800 text-nature-600 dark:text-nature-300 flex items-center justify-center shadow-inner">
+              <FontAwesomeIcon icon={faChartLine} size="lg" />
+            </div>
+          </div>
+        </GlassCard>
+        
+        <GlassCard className="p-6 relative overflow-hidden group bg-white/70 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50">
+          <div className="absolute -right-6 -top-6 w-24 h-24 bg-orange-50 dark:bg-orange-900/20 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-500"></div>
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <h5 className="text-sm font-bold text-accent-orange dark:text-orange-400 mb-2 uppercase tracking-wider">{t('Total Purchase')}</h5>
+              <h3 className="text-4xl font-extrabold text-nature-800 dark:text-nature-100">₹ {dashboardData.totals.purchase.toLocaleString()}</h3>
+            </div>
+            <div className="w-12 h-12 rounded-2xl bg-orange-50 dark:bg-orange-900/30 text-accent-orange flex items-center justify-center shadow-inner">
+              <FontAwesomeIcon icon={faShoppingCart} size="lg" />
+            </div>
+          </div>
+        </GlassCard>
+
+        <GlassCard className="p-6 relative overflow-hidden group bg-gradient-to-br from-white/70 to-nature-50/70 dark:from-nature-900/60 dark:to-nature-800/60 border border-nature-200 dark:border-nature-700/50">
+           <div className="absolute -right-6 -top-6 w-24 h-24 bg-nature-100 dark:bg-nature-700/50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-500"></div>
+           <div className="relative z-10 flex flex-col justify-between h-full">
+             <div className="flex items-center justify-between">
+               <h5 className="text-sm font-bold text-nature-500 dark:text-nature-400 uppercase tracking-wider">{t('System Status')}</h5>
+               <FontAwesomeIcon icon={faServer} className="text-nature-400 dark:text-nature-500" />
              </div>
+             <h3 className="text-xl font-semibold text-nature-700 dark:text-nature-200 mt-4 flex items-center gap-3">
+               <FontAwesomeIcon icon={faCircleCheck} className="text-nature-500 animate-pulse" />
+               {t('All systems operational')}
+             </h3>
            </div>
+        </GlassCard>
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Bar Chart: Stock vs Purchase vs Sales */}
+        <div className="lg:col-span-2">
+          <GlassCard className="p-6 h-full flex flex-col bg-white/70 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50">
+            <h4 className="text-xl font-bold text-nature-800 dark:text-nature-100 mb-6">{t('Product Overview')}</h4>
+            <div className="flex-1 w-full min-h-[400px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dashboardData.barData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5f2e5" strokeOpacity={0.5} vertical={false} />
+                  <XAxis dataKey="name" tick={{fill: '#5c995c', fontSize: 12}} axisLine={false} tickLine={false} />
+                  <YAxis tick={{fill: '#5c995c', fontSize: 12}} axisLine={false} tickLine={false} />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '16px', border: '1px solid rgba(122,184,122,0.2)', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)', backgroundColor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)', color: '#244024' }}
+                    itemStyle={{ color: '#244024' }}
+                  />
+                  <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '14px', color: '#477a47' }}/>
+                  <Bar dataKey="stock" fill={CHART_COLORS.stock} name={t('Current Stock')} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="purchase" fill={CHART_COLORS.purchase} name={t('Purchase Qty')} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="sales" fill={CHART_COLORS.sales} name={t('Sales Qty')} radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </GlassCard>
         </div>
 
-        <div className="saas-card metric-card">
-           <div className="saas-card-header d-flex justify-content-between">
-              <span>{t('monthly_progress')}</span>
-              <FontAwesomeIcon icon={faEllipsisVertical} />
-           </div>
-           <div className="saas-card-body d-flex flex-column align-items-center justify-content-center h-100">
-              <div style={{ width: '100%', height: '140px' }}>
-                <ResponsiveContainer>
-                  <PieChart>
-                    <Pie
-                      data={dashboardData.pieData}
-                      cx="50%" cy="50%"
-                      innerRadius={45} outerRadius={60}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {dashboardData.pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <button className="btn btn-outline-primary btn-sm mt-2 w-100">{t('download_report')}</button>
-           </div>
+        {/* Pie Chart: Total Amount Comparison */}
+        <div className="lg:col-span-1">
+          <GlassCard className="p-6 h-full flex flex-col items-center bg-white/70 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50">
+            <h4 className="text-xl font-bold text-nature-800 dark:text-nature-100 mb-6 w-full text-left">{t('Activity Ratio')}</h4>
+            <div className="flex-1 w-full min-h-[300px] flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={dashboardData.pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={80}
+                    outerRadius={120}
+                    paddingAngle={5}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {dashboardData.pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={index === 0 ? CHART_COLORS.sales : CHART_COLORS.purchase} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value) => `₹ ${value.toLocaleString()}`}
+                    contentStyle={{ borderRadius: '16px', border: '1px solid rgba(122,184,122,0.2)', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)', backgroundColor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)', color: '#244024' }}
+                    itemStyle={{ color: '#244024' }}
+                  />
+                  <Legend iconType="circle" verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '14px', color: '#477a47' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </GlassCard>
         </div>
-      </section>
-
-      {/* Main Grid: Weekly Progress + Tasks */}
-      <section className="dashboard-row middle-section">
-        <div className="saas-card chart-card">
-            <div className="saas-card-header d-flex justify-content-between">
-                <span>{t('weekly_progress')}</span>
-                <span className="badge bg-light text-dark border">{t('this_week')}</span>
-            </div>
-            <div className="saas-card-body">
-                <div style={{ width: '100%', height: '300px' }}>
-                    <ResponsiveContainer>
-                        <LineChart data={dashboardData.barData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 12}} />
-                            <YAxis axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 12}} />
-                            <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }} />
-                            <Legend iconType="circle" />
-                            <Line type="monotone" dataKey="sales" stroke="#111827" strokeWidth={3} dot={{r: 4}} activeDot={{r: 6}} />
-                            <Line type="monotone" dataKey="purchase" stroke="#9ca3af" strokeWidth={3} dot={{r: 4}} />
-                        </LineChart>
-                    </ResponsiveContainer>
-                </div>
-            </div>
-        </div>
-
-        {/* Syncing Tasks to Recent Product Stock List structurally */}
-        <div className="saas-card tasks-card">
-            <div className="saas-card-header d-flex justify-content-between">
-                <span>{t('tasks_in_process')}</span>
-                <FontAwesomeIcon icon={faEllipsisVertical} />
-            </div>
-            <div className="saas-card-body p-0">
-               <ul className="list-group list-group-flush pt-2 pb-2">
-                   {dashboardData.barData.slice(0, 4).map((item, idx) => (
-                       <li key={idx} className="list-group-item d-flex justify-content-between align-items-center border-0 px-4 py-3 task-item">
-                           <div>
-                               <h6 className="mb-0 fw-semibold">{item.name}</h6>
-                               <small className="text-muted">{t('stock_units', { count: item.stock })}</small>
-                           </div>
-                           <FontAwesomeIcon icon={faEllipsisVertical} className="text-muted" style={{cursor: 'pointer'}} />
-                       </li>
-                   ))}
-               </ul>
-            </div>
-        </div>
-      </section>
-
-      {/* Bottom Grid: Projects mapping to Suppliers/Customers conceptually */}
-      <section className="dashboard-row bottom-section">
-         <div className="saas-card">
-             <div className="saas-card-header">{t('recent_projects')}</div>
-             <div className="saas-card-body pb-4">
-                 <div className="row">
-                     {[
-                         { title: t('supplier_network'), desc: t('active_order_routing'), status: t('in_progress') },
-                         { title: t('customer_onboarding'), desc: t('retail_pos_integration'), status: t('completed') },
-                         { title: t('inventory_audit'), desc: t('q3_stock_reconciliation'), status: t('in_progress') }
-                     ].map((proj, i) => (
-                         <div className="col-md-4" key={i}>
-                             <div className="border rounded p-3 project-box hover-shadow transition-fast">
-                                 <div className="d-flex justify-content-between align-items-start mb-2">
-                                    <div className="bg-light p-2 rounded text-dark"><FontAwesomeIcon icon={faFolderOpen} /></div>
-                                    <span className={`badge ${proj.status === t('completed') ? 'bg-dark' : 'bg-light text-dark border'}`}>{proj.status}</span>
-                                 </div>
-                                 <h6 className="fw-semibold mt-3">{proj.title}</h6>
-                                 <p className="text-muted small mb-0">{proj.desc}</p>
-                             </div>
-                         </div>
-                     ))}
-                 </div>
-             </div>
-         </div>
-      </section>
-
+      </div>
     </div>
   );
 };

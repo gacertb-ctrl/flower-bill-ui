@@ -8,6 +8,8 @@ import EntryModal from '../components/entry/EntryModal.jsx';
 import EntryUpdateModal from '../components/entry/EntryUpdateModal.jsx';
 import { getAllPurchaseEntries, getAllSalesEntries, deletePurchaseEntry, deleteSalesEntry, fetchTamilDate } from '../api/entryAPI';
 import { useAuth } from '../context/AuthContext';
+import GlassCard from '../components/ui/GlassCard';
+import GlassButton from '../components/ui/GlassButton';
 
 const EntryPage = () => {
   const { t } = useTranslation();
@@ -47,7 +49,7 @@ const EntryPage = () => {
       }
     };
     getTamilInfo();
-  }, [date]);
+  }, [date]); 
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -65,10 +67,9 @@ const EntryPage = () => {
 
   // --- Purchase Handlers ---
   const handlePurchaseEdit = (row, type) => {
-    // Map Table Row to Modal Form Format
     setEditItem({
       id: row.purchase_id,
-      customer_supplier_code: row.customer_supplier_code || row.supplier_code, // Ensure your API returns this
+      customer_supplier_code: row.customer_supplier_code || row.supplier_code,
       product_code: row.product_code,
       quantity: row.purchase_quality,
       price: row.purchase_rate,
@@ -80,7 +81,7 @@ const EntryPage = () => {
 
   const handlePurchaseSubmit = (data) => {
     setShowPurchaseModal(false);
-    setEditItem(null); // Clear edit state
+    setEditItem(null);
     loadData();
   };
 
@@ -118,40 +119,35 @@ const EntryPage = () => {
     }
   };
 
-
-  // Close Handlers (to reset edit state)
-  const closePurchaseModal = () => { setShowPurchaseModal(false); setEditItem(null); };
-  const closeSalesModal = () => { setShowSalesModal(false); setEditItem(null); };
-
   return (
-    <div className="container-fluid py-4" style={{ minHeight: '100vh' }}>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
       {/* Top Header Section */}
-      <div className="d-flex justify-content-between align-items-center mb-4 saas-card p-3 border-0">
+      <GlassCard className="p-6 mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
-          <h2 className="fw-bold text-primary mb-0">{t('Daily Entries')}</h2>
-          <p className="text-muted small mb-0">{t('Manage your daily stock movement')}</p>
+          <h2 className="text-2xl font-bold text-nature-800 dark:text-nature-100">{t('Daily Entries')}</h2>
+          <p className="text-nature-500 dark:text-nature-400 text-sm mt-1">{t('Manage your daily stock movement')}</p>
         </div>
 
-        <div className="d-flex align-items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-center gap-4">
           {/* Tamil Date Display Card */}
           {tamilDateInfo.tamil_date && (
-            <div className="d-flex align-items-center bg-warning-soft px-3 py-2 rounded-3 border border-warning border-opacity-25" style={{ backgroundColor: '#fff9db' }}>
-              <FontAwesomeIcon icon={faMoon} className="text-warning me-2" />
+            <div className="flex items-center bg-accent-gold/20 px-4 py-2 rounded-xl border border-accent-gold/30">
+              <FontAwesomeIcon icon={faMoon} className="text-yellow-600 mr-3" />
               <div>
-                <span className="fw-bold text-dark d-block" style={{ fontSize: '0.9rem' }}>
+                <span className="font-semibold text-nature-800 dark:text-nature-100 block text-sm">
                   {tamilDateInfo.tamil_month_name_ta} {tamilDateInfo.tamil_date}
                 </span>
-                <span className="text-muted" style={{ fontSize: '0.7rem' }}>தமிழ் தேதி</span>
+                <span className="text-nature-600 dark:text-nature-400 text-xs">தமிழ் தேதி</span>
               </div>
             </div>
           )}
 
           {/* Standard Date Picker */}
-          <div className="d-flex align-items-center bg-light p-2 rounded-3 shadow-xs">
-            <FontAwesomeIcon icon={faCalendarDays} className="text-primary me-2" />
+          <div className="flex items-center bg-white/50 dark:bg-nature-900/50 px-4 py-2 rounded-xl shadow-sm border border-nature-200 dark:border-nature-700/50">
+            <FontAwesomeIcon icon={faCalendarDays} className="text-nature-500 mr-3" />
             <input
               type="date"
-              className="form-control form-control-sm border-0 bg-transparent fw-bold"
+              className="bg-transparent border-none text-nature-800 dark:text-nature-100 font-semibold focus:outline-none focus:ring-0"
               value={date}
               onChange={(e) => setDate(e.target.value)}
               disabled={!isAdmin}
@@ -163,81 +159,84 @@ const EntryPage = () => {
             />
           </div>
         </div>
-      </div>
+      </GlassCard>
 
-      <div className="row g-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Purchase Card */}
-        <div className="col-xl-6">
-          <div className="saas-card mb-0 h-100">
-            <div className="saas-card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
-              <div className="d-flex align-items-center">
-                <div className="bg-primary-soft p-2 rounded-3 me-3 text-primary" style={{ backgroundColor: 'rgba(99,102,241,0.1)' }}>
+        <div className="flex flex-col">
+          <GlassCard className="p-6 h-full flex flex-col">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-nature-200 dark:border-nature-700/50">
+              <div className="flex items-center">
+                <div className="bg-nature-100 dark:bg-nature-800 p-3 rounded-xl mr-4 text-nature-600 dark:text-nature-300">
                   <FontAwesomeIcon icon={faShoppingCart} size="lg" />
                 </div>
-                <h4 className="fw-bold mb-0 text-primary-emphasis">{t('purchase')} {t('ledger')}</h4>
+                <h4 className="text-xl font-bold text-nature-800 dark:text-nature-100">{t('purchase')} {t('ledger')}</h4>
               </div>
-              <button
-                className="btn btn-primary rounded-pill px-3 shadow-sm btn-sm"
+              <GlassButton
+                variant="primary"
                 onClick={() => { setEditItem(null); setShowPurchaseModal(true); }}
+                className="text-sm px-4"
               >
-                <FontAwesomeIcon icon={faPlus} className="me-2" /> {t('purchase')} <span className="badge bg-white text-primary ms-1">F9</span>
-              </button>
+                <FontAwesomeIcon icon={faPlus} /> {t('purchase')} 
+                <span className="ml-2 bg-white/20 text-white text-xs px-1.5 py-0.5 rounded">F9</span>
+              </GlassButton>
             </div>
-            <div className="card-body px-4">
+            <div className="flex-1 overflow-x-auto">
               <PurchaseTable data={purchases} handleEdit={handlePurchaseEdit} handleDelete={handlePurchaseDelete} />
             </div>
-          </div>
+          </GlassCard>
         </div>
 
         {/* Sales Card */}
-        <div className="col-xl-6">
-          <div className="saas-card mb-0 h-100">
-            <div className="saas-card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
-              <div className="d-flex align-items-center">
-                <div className="bg-success-soft p-2 rounded-3 me-3 text-success" style={{ backgroundColor: 'rgba(168,85,247,0.1)' }}>
+        <div className="flex flex-col">
+          <GlassCard className="p-6 h-full flex flex-col">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-nature-200 dark:border-nature-700/50">
+              <div className="flex items-center">
+                <div className="bg-accent-blue/20 dark:bg-accent-blue/10 p-3 rounded-xl mr-4 text-accent-blue">
                   <FontAwesomeIcon icon={faArrowUpRightFromSquare} size="lg" />
                 </div>
-                <h4 className="fw-bold mb-0" style={{ color: 'var(--secondary)' }}>{t('sales')} {t('ledger')}</h4>
+                <h4 className="text-xl font-bold text-nature-800 dark:text-nature-100">{t('sales')} {t('ledger')}</h4>
               </div>
-              <button
-                className="btn btn-success rounded-pill px-3 shadow-sm btn-sm"
+              <GlassButton
+                className="bg-accent-blue text-white hover:bg-blue-500 shadow-glow text-sm px-4"
                 onClick={() => { setEditItem(null); setShowSalesModal(true); }}
               >
-                <FontAwesomeIcon icon={faPlus} className="me-2" /> {t('sales')} <span className="badge bg-white text-success ms-1">F8</span>
-              </button>
+                <FontAwesomeIcon icon={faPlus} /> {t('sales')} 
+                <span className="ml-2 bg-white/20 text-white text-xs px-1.5 py-0.5 rounded">F8</span>
+              </GlassButton>
             </div>
-            <div className="card-body px-4">
+            <div className="flex-1 overflow-x-auto">
               <SalesTable data={sales} handleEdit={handleSalesEdit} handleDelete={handleSalesDelete} />
             </div>
-          </div>
+          </GlassCard>
         </div>
       </div>
 
-      {/* Modals remain similarly linked as before */}
-      <EntryModal
-        type="purchase"
-        show={showPurchaseModal}
-        onHide={() => setShowPurchaseModal(false)}
-        onSubmit={handlePurchaseSubmit}
+      <EntryModal 
+        type="purchase" 
+        show={showPurchaseModal} 
+        onHide={() => setShowPurchaseModal(false)} 
+        onSubmit={handlePurchaseSubmit} 
         date={date}
         tamilDateInfo={tamilDateInfo}
-      />
+        />
 
-      <EntryModal
-        type="sales"
-        show={showSalesModal}
-        onHide={() => setShowSalesModal(false)}
-        onSubmit={handleSalesSubmit}
+      <EntryModal 
+        type="sales" 
+        show={showSalesModal} 
+        onHide={() => setShowSalesModal(false)} 
+        onSubmit={handleSalesSubmit} 
         date={date}
-        tamilDateInfo={tamilDateInfo}
-      />
+        tamilDateInfo={tamilDateInfo} 
+        />
 
-      <EntryUpdateModal
-        show={showUpdateModal}
-        onHide={() => setShowUpdateModal(false)}
-        type={editItem?.type}
-        editData={editItem}
-        onSuccess={loadData} />
+      <EntryUpdateModal 
+        show={showUpdateModal} 
+        onHide={() => setShowUpdateModal(false)} 
+        type={editItem?.type} 
+        editData={editItem} 
+        onSuccess={loadData} 
+      />
     </div>
   );
 };

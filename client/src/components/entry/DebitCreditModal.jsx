@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { fetchSuppliers } from '../../api/supplierAPI';
 import { fetchCustomers } from '../../api/customerAPI';
 import { createDebitEntry, createCreditEntry } from '../../api/debitCreditAPI';
 import { SearchableSelect } from './SearchableSelect';
+import FloatingModal from '../ui/FloatingModal';
+import GlassButton from '../ui/GlassButton';
 
 const DebitCreditModal = ({ type, show, onHide, onSubmit, date }) => {
     const { t } = useTranslation();
@@ -72,39 +73,44 @@ const DebitCreditModal = ({ type, show, onHide, onSubmit, date }) => {
     const selectPlaceholder = type === 'debit' ? t('select.supplier') : t('select.customer');
 
     return (
-        <Modal show={show} onHide={onHide} centered>
-            <Modal.Header closeButton>
-                <Modal.Title>{modalTitle}</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-                <Form>
-                    <Form.Group className="mb-3">
-                        <Form.Label>{labelText}</Form.Label>
-                        <SearchableSelect
-                            name="customer_supplier_code"
-                            value={formData.customer_supplier_code}
-                            options={options}
-                            onChange={handleChange}
-                            placeholder={selectPlaceholder}
-                        />
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                        <Form.Label>{t('amount')}</Form.Label>
-                        <Form.Control
-                            type="number"
-                            name="amount"
-                            value={formData.amount}
-                            onChange={handleChange}
-                            placeholder={t('enterAmount')}
-                        />
-                    </Form.Group>
-                </Form>
-            </Modal.Body>
-            <Modal.Footer>
-                <Button variant="secondary" onClick={onHide}>{t('close')}</Button>
-                <Button variant="primary" onClick={handleSubmit}>{t('save')}</Button>
-            </Modal.Footer>
-        </Modal>
+        <FloatingModal show={show} onHide={onHide} title={modalTitle}>
+            <div className="space-y-4">
+                <div>
+                    <label className="block text-sm font-medium text-nature-700 dark:text-nature-300 mb-1">
+                        {labelText}
+                    </label>
+                    <SearchableSelect
+                        name="customer_supplier_code"
+                        value={formData.customer_supplier_code}
+                        options={options}
+                        onChange={handleChange}
+                        placeholder={selectPlaceholder}
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-nature-700 dark:text-nature-300 mb-1">
+                        {t('amount')}
+                    </label>
+                    <input
+                        type="number"
+                        name="amount"
+                        className="w-full px-4 py-2 bg-white/60 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50 rounded-xl focus:ring-2 focus:ring-nature-400 outline-none text-nature-800 dark:text-nature-100 transition-all"
+                        value={formData.amount}
+                        onChange={handleChange}
+                        placeholder={t('enterAmount')}
+                    />
+                </div>
+            </div>
+            
+            <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-nature-200 dark:border-nature-700/50">
+                <GlassButton variant="secondary" onClick={onHide}>
+                    {t('close')}
+                </GlassButton>
+                <GlassButton variant="primary" onClick={handleSubmit}>
+                    {t('save')}
+                </GlassButton>
+            </div>
+        </FloatingModal>
     );
 };
 

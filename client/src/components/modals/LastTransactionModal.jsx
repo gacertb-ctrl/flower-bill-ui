@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Modal, Form, Row, Col, Button, Badge, InputGroup } from 'react-bootstrap';
 import DataTable from 'react-data-table-component';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDownload, faSearch, faCalendarAlt, faHistory, faExchangeAlt } from '@fortawesome/free-solid-svg-icons';
 import { getLastSupplierTransactions } from '../../api/supplierAPI';
 import { getLastCustomerTransactions } from '../../api/customerAPI';
+import FloatingModal from '../ui/FloatingModal';
+import GlassButton from '../ui/GlassButton';
 
 const LastTransactionModal = ({ show, onHide, transactions: initialTransactions, reportType }) => {
   const { t } = useTranslation();
@@ -39,31 +40,56 @@ const LastTransactionModal = ({ show, onHide, transactions: initialTransactions,
     }
   };
 
-  // Modern Table Custom Styles
+  // Custom styles for DataTable matching tailwind antigravity theme
   const customStyles = {
-    header: { style: { minHeight: '56px' } },
+    header: {
+        style: {
+            backgroundColor: 'transparent',
+            color: 'inherit',
+        },
+    },
     headRow: {
-      style: {
-        borderTopStyle: 'solid',
-        borderTopWidth: '1px',
-        borderTopColor: '#f2f2f2',
-        backgroundColor: '#f8f9fa',
-      },
+        style: {
+            backgroundColor: 'rgba(255, 255, 255, 0.15)',
+            borderBottomColor: 'rgba(122, 184, 122, 0.3)',
+            borderTopColor: 'transparent',
+            borderLeftColor: 'transparent',
+            borderRightColor: 'transparent',
+        },
     },
     headCells: {
-      style: {
-        fontWeight: 'bold',
-        fontSize: '0.85rem',
-        color: '#495057',
-        textTransform: 'uppercase',
-      },
+        style: {
+            color: 'inherit',
+            fontSize: '0.875rem',
+            fontWeight: '600',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+        },
+    },
+    rows: {
+        style: {
+            backgroundColor: 'transparent',
+            color: 'inherit',
+            borderBottomColor: 'rgba(122, 184, 122, 0.2)',
+            '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                transition: 'background-color 0.2s ease',
+            },
+        },
     },
     cells: {
-      style: {
-        fontSize: '0.9rem',
-        paddingTop: '12px',
-        paddingBottom: '12px',
-      },
+        style: {
+            color: 'inherit',
+            paddingTop: '0.75rem',
+            paddingBottom: '0.75rem',
+        },
+    },
+    pagination: {
+        style: {
+            backgroundColor: 'transparent',
+            borderTopColor: 'rgba(122, 184, 122, 0.2)',
+            color: 'inherit',
+        },
     },
   };
 
@@ -79,15 +105,16 @@ const LastTransactionModal = ({ show, onHide, transactions: initialTransactions,
       sortable: true,
       grow: 1,
       cell: (row) => (
-        <Badge
-          pill
-          className="px-3 py-2"
-          bg={row.type === 'purchase' || row.type === 'sales' ? 'danger' : 'success'}
-          style={{ fontSize: '0.75rem', minWidth: '80px' }}
+        <span
+          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+            row.type === 'purchase' || row.type === 'sales'
+              ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+              : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+          }`}
         >
-          <FontAwesomeIcon icon={faExchangeAlt} className="me-1" />
+          <FontAwesomeIcon icon={faExchangeAlt} className="mr-1.5" />
           {t(row.type).toUpperCase()}
-        </Badge>
+        </span>
       ),
     },
     {
@@ -96,95 +123,101 @@ const LastTransactionModal = ({ show, onHide, transactions: initialTransactions,
       sortable: true,
       right: true,
       grow: 1,
-      style: { fontWeight: '600', color: '#2c3e50' }
+      style: { fontWeight: '600' }
     },
     {
       name: t('action'),
       center: true,
       cell: (row) => (
-        <Button
-          variant="outline-primary"
-          size="sm"
-          className="rounded-circle shadow-sm"
+        <button
+          className="p-2 text-accent-blue hover:text-blue-700 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 rounded-full transition-colors w-8 h-8 flex items-center justify-center shadow-sm"
           onClick={() => window.open(`/print-report?period=date&type=${row.type}&code=${row.customer_supplier_code}&date=${row.date.split('T')[0]}`, '_blank')}
-          style={{ width: '35px', height: '35px' }}
         >
           <FontAwesomeIcon icon={faDownload} />
-        </Button>
+        </button>
       ),
       button: true,
     },
   ], [t]);
 
   return (
-    <Modal show={show} onHide={onHide} centered size="lg" className="transaction-modal">
-      <Modal.Header closeButton className="bg-primary text-white shadow-sm border-0">
-        <Modal.Title className="fs-5 fw-bold">
-          <FontAwesomeIcon icon={faHistory} className="me-2" />
-          {t('transaction history')}
-        </Modal.Title>
-      </Modal.Header>
-
-      <Modal.Body className="bg-light px-4 py-4">
+    <FloatingModal 
+        show={show} 
+        onHide={onHide} 
+        title={
+            <div className="flex items-center">
+                <FontAwesomeIcon icon={faHistory} className="mr-2 text-nature-600 dark:text-nature-300" />
+                {t('transaction history')}
+            </div>
+        } 
+        size="xl"
+    >
         {/* Filter Card */}
-        <div className="bg-white p-3 rounded-4 shadow-sm mb-4 border-0">
-          <Row className="g-3 align-items-end">
-            <Col md={4}>
-              <Form.Label className="small fw-bold text-muted mb-2">
-                <FontAwesomeIcon icon={faCalendarAlt} className="me-1" /> {t('from date')}
-              </Form.Label>
-              <Form.Control
-                type="date"
-                className="form-control-sm border-0 bg-light"
-                value={fromDate}
-                onChange={e => setFromDate(e.target.value)}
-              />
-            </Col>
-            <Col md={4}>
-              <Form.Label className="small fw-bold text-muted mb-2">
-                <FontAwesomeIcon icon={faCalendarAlt} className="me-1" /> {t('to date')}
-              </Form.Label>
-              <Form.Control
-                type="date"
-                className="form-control-sm border-0 bg-light"
-                value={toDate}
-                onChange={e => setToDate(e.target.value)}
-              />
-            </Col>
-            <Col md={4}>
-              <Button
-                variant="primary"
-                className="w-100 fw-bold shadow-sm"
-                onClick={handleFilter}
-                disabled={loading}
-              >
-                {loading ? '...' : <><FontAwesomeIcon icon={faSearch} className="me-2" /> {t('filter')}</>}
-              </Button>
-            </Col>
-          </Row>
+        <div className="bg-white/60 dark:bg-nature-900/60 p-4 rounded-xl shadow-sm mb-6 border border-nature-200 dark:border-nature-700/50">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <div>
+                    <label className="block text-xs font-bold text-nature-500 dark:text-nature-400 mb-2 uppercase tracking-wider">
+                        <FontAwesomeIcon icon={faCalendarAlt} className="mr-1" /> {t('from date')}
+                    </label>
+                    <input
+                        type="date"
+                        className="w-full px-3 py-2 bg-white/80 dark:bg-nature-800/80 border border-nature-200 dark:border-nature-700/50 rounded-lg focus:ring-2 focus:ring-nature-400 outline-none text-nature-800 dark:text-nature-100 text-sm"
+                        value={fromDate}
+                        onChange={e => setFromDate(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label className="block text-xs font-bold text-nature-500 dark:text-nature-400 mb-2 uppercase tracking-wider">
+                        <FontAwesomeIcon icon={faCalendarAlt} className="mr-1" /> {t('to date')}
+                    </label>
+                    <input
+                        type="date"
+                        className="w-full px-3 py-2 bg-white/80 dark:bg-nature-800/80 border border-nature-200 dark:border-nature-700/50 rounded-lg focus:ring-2 focus:ring-nature-400 outline-none text-nature-800 dark:text-nature-100 text-sm"
+                        value={toDate}
+                        onChange={e => setToDate(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <GlassButton
+                        variant="primary"
+                        className="w-full justify-center py-2"
+                        onClick={handleFilter}
+                        disabled={loading}
+                    >
+                        {loading ? '...' : <><FontAwesomeIcon icon={faSearch} className="mr-2" /> {t('filter')}</>}
+                    </GlassButton>
+                </div>
+            </div>
         </div>
 
         {/* Table Container */}
-        <div className="bg-white rounded-4 shadow-sm overflow-hidden border-0">
-          <DataTable
-            columns={columns}
-            data={data}
-            progressPending={loading}
-            pagination
-            paginationPerPage={5}
-            paginationRowsPerPageOptions={[5, 10, 15]}
-            highlightOnHover
-            customStyles={customStyles}
-            noDataComponent={
-              <div className="p-5 text-center text-muted">
-                <FontAwesomeIcon icon={faHistory} size="3x" className="mb-3 opacity-25" />
-                <p>{t('no transactions found')}</p>
-              </div>
-            }
-          />
+        <div className="bg-white/40 dark:bg-nature-900/40 rounded-xl overflow-hidden border border-nature-200 dark:border-nature-700/50">
+            <div className="react-data-table-container">
+                <DataTable
+                    columns={columns}
+                    data={data}
+                    progressPending={loading}
+                    pagination
+                    paginationPerPage={5}
+                    paginationRowsPerPageOptions={[5, 10, 15]}
+                    highlightOnHover
+                    customStyles={customStyles}
+                    noDataComponent={
+                        <div className="p-8 text-center text-nature-400 dark:text-nature-500">
+                            <FontAwesomeIcon icon={faHistory} size="3x" className="mb-4 opacity-30" />
+                            <p className="text-sm font-medium">{t('no transactions found')}</p>
+                        </div>
+                    }
+                />
+            </div>
         </div>
-      </Modal.Body>
-    </Modal>
+
+        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-nature-200 dark:border-nature-700/50">
+            <GlassButton variant="secondary" onClick={onHide}>
+                {t('close')}
+            </GlassButton>
+        </div>
+    </FloatingModal>
   );
 };
 

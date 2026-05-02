@@ -10,7 +10,8 @@ import SupplierPage from './pages/SupplierPage';
 import EntryPage from './pages/EntryPage';
 import LoginPage from './pages/LoginPage';
 import Header from './components/Header';
-import Sidebar from './components/Sidebar';
+import Footer from './components/Footer';
+import Navbar from './components/Navbar';
 import ReportPage from './pages/ReportPage';
 import ReportPrintView from './pages/ReportPrintView';
 import DebitCreditPage from './pages/DebitCreditPage';
@@ -25,33 +26,23 @@ function AppContent() {
 
   return (
     <>
-      {isPrint ? (
-        <Routes>
-          <Route path="/print-report" element={<ReportPrintView />} />
-        </Routes>
-      ) : (
-        <div className="layout-wrapper">
-          <Sidebar />
-          <div className="main-content" style={{ marginLeft: '260px' }}>
-            <Header />
-            <main className="page-container">
-              <Routes>
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/" element={<HomePage />} />
-                <Route path="/customers" element={<CustomerPage />} />
-                <Route path="/products" element={<ProductPage />} />
-                <Route path="/stocks" element={<StocksPage />} />
-                <Route path="/suppliers" element={<SupplierPage />} />
-                <Route path="/entries" element={<EntryPage />} />
-                <Route path="/report" element={<ReportPage />} />
-                <Route path="/debit-credit" element={<DebitCreditPage />} />
-                <Route path="/settings" element={<SettingsPage />} />
-                <Route path="/users" element={<UserManagementPage />} />
-              </Routes>
-            </main>
-          </div>
-        </div>
-      )}
+      {!isPrint && <Header />}
+      {!isPrint && <Navbar />}
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/print-report" element={<ReportPrintView />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/customers" element={<CustomerPage />} />
+        <Route path="/products" element={<ProductPage />} />
+        <Route path="/stocks" element={<StocksPage />} />
+        <Route path="/suppliers" element={<SupplierPage />} />
+        <Route path="/entries" element={<EntryPage />} />
+        <Route path="/report" element={<ReportPage />} />
+        <Route path="/debit-credit" element={<DebitCreditPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/users" element={<UserManagementPage />} />
+      </Routes>
+      {!isPrint && <Footer />}
     </>
   );
 }

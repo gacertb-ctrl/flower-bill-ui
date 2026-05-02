@@ -4,6 +4,8 @@ import CustomerSupplierModal from '../components/modals/CustomerSupplierModal';
 import LastTransactionModal from '../components/modals/LastTransactionModal';
 import { useTranslation } from 'react-i18next';
 import { fetchSuppliers, createSupplier, updateSupplier, getLastSupplierTransactions, deleteSupplier } from '../api/supplierAPI';
+import GlassCard from '../components/ui/GlassCard';
+import GlassButton from '../components/ui/GlassButton';
 
 const SupplierPage = () => {
   const [showModal, setShowModal] = useState(false);
@@ -65,8 +67,8 @@ const SupplierPage = () => {
       const confirmed = window.confirm(t('confirm.delete'));
       if (confirmed) {
         await deleteSupplier(id);
-        fetchData()
-        alert(t('Supplier Deleted')); // Ensure this key exists or update to 'messages.supplierDeleted'
+        fetchData();
+        alert(t('Supplier Deleted'));
       }
       const updatedSuppliers = await fetchSuppliers();
       setSupplierData(updatedSuppliers);
@@ -76,36 +78,33 @@ const SupplierPage = () => {
   };
 
   return (
-    <div className="container-fluid py-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="h4 text-primary mb-0 fw-bold">{t('supplier.management') || 'Supplier Management'}</h2>
-        <button
-          className="btn btn-primary shadow-sm rounded-pill"
-          onClick={() => {
-            setEditData(null);
-            setShowModal(true);
-          }}
-        >
-          <i className="bi bi-plus-circle me-1"></i> {t(`${page}.add`)}
-        </button>
-      </div>
-
-      <div className="row">
-        <div className="col-12">
-          <div className="saas-card">
-            <div className="saas-card-body p-0">
-              <Table
-                page={page}
-                data={supplierData}
-                setShowModal={setShowModal}
-                setEditData={setEditData}
-                loadLastTransaction={loadLastTransaction}
-                deleteData={deleteSupplierdata}
-              />
-            </div>
-          </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
+      <GlassCard className="p-6">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+          <h2 className="text-2xl font-bold text-nature-800 dark:text-nature-100">{t(`${page}.title`) || 'Supplier List'}</h2>
+          <GlassButton
+            variant="primary"
+            onClick={() => {
+              setEditData(null);
+              setShowModal(true);
+            }}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+            {t(`${page}.add`)}
+          </GlassButton>
         </div>
-      </div>
+
+        <div className="overflow-x-auto w-full">
+          <Table
+            page={page}
+            data={supplierData}
+            setShowModal={setShowModal}
+            setEditData={setEditData}
+            loadLastTransaction={loadLastTransaction}
+            deleteData={deleteSupplierdata}
+          />
+        </div>
+      </GlassCard>
 
       <CustomerSupplierModal
         show={showModal}
@@ -117,7 +116,6 @@ const SupplierPage = () => {
         mode={editData ? 'update' : 'add'}
         initialData={editData}
         onSubmit={handleSubmit}
-      // t={t} removed, Modal uses hook internally
       />
 
       <LastTransactionModal

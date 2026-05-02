@@ -3,8 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { getDebitEntries, getCreditEntries, deleteDebitEntry, deleteCreditEntry } from '../api/debitCreditAPI';
 import DebitCreditModal from '../components/entry/DebitCreditModal.jsx';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash, faPlus, faPen } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faPlus, faPen, faCalendarDays, faMoneyBillTransfer, faHandHoldingDollar } from '@fortawesome/free-solid-svg-icons';
 import DebitCreditUpdateModal from '../components/entry/DebitCreditUpdateModal.jsx';
+import GlassCard from '../components/ui/GlassCard';
+import GlassButton from '../components/ui/GlassButton';
 
 const DebitCreditPage = () => {
     const { t } = useTranslation();
@@ -14,7 +16,7 @@ const DebitCreditPage = () => {
 
     const [showDebitModal, setShowDebitModal] = useState(false);
     const [showCreditModal, setShowCreditModal] = useState(false);
-    const [editItem, setEditItem] = useState(null); // Track item being edited
+    const [editItem, setEditItem] = useState(null);
     const [showUpdateModal, setShowUpdateModal] = useState(false);
     const [updateType, setUpdateType] = useState(null);
 
@@ -46,12 +48,10 @@ const DebitCreditPage = () => {
     const handleEdit = (type, row) => {
         setEditItem({
             id: type === 'debit' ? row.debit_id : row.credit_id,
-            customer_supplier_code: row.customer_supplier_code || row.code, // Ensure code is here
+            customer_supplier_code: row.customer_supplier_code || row.code,
             amount: type === 'debit' ? row.debit_amount : row.credit_amount
         });
-        if (type === 'debit') setUpdateType("debit");
-        else setUpdateType("credit");
-
+        setUpdateType(type);
         setShowUpdateModal(true);
     };
 
@@ -62,99 +62,135 @@ const DebitCreditPage = () => {
     };
 
     return (
-        <div className="container-fluid mt-5 pt-4">
-            <div className="row mb-3">
-                <div className="col-md-3">
-                    <label className="form-label fw-bold">{t('date')}</label>
-                    <input type="date" className="form-control" value={date} onChange={(e) => setDate(e.target.value)} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
+            {/* Header Section */}
+            <GlassCard className="p-6 mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <h2 className="text-2xl font-bold text-nature-800 dark:text-nature-100">{t('Debit / Credit Tracking')}</h2>
+                    <p className="text-nature-500 dark:text-nature-400 text-sm mt-1">{t('Manage your financial transactions')}</p>
                 </div>
-            </div>
 
-            <div className="row">
+                <div className="flex items-center bg-white/50 dark:bg-nature-900/50 px-4 py-2 rounded-xl shadow-sm border border-nature-200 dark:border-nature-700/50">
+                    <FontAwesomeIcon icon={faCalendarDays} className="text-nature-500 mr-3" />
+                    <input
+                        type="date"
+                        className="bg-transparent border-none text-nature-800 dark:text-nature-100 font-semibold focus:outline-none focus:ring-0"
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                    />
+                </div>
+            </GlassCard>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Debit Column */}
-                <div className="col-12 col-md-6 mb-4">
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                        <h4 className="text-primary">{t('purchaseDebit')}</h4>
-                        <button className="btn btn-primary" onClick={() => { setEditItem(null); setShowDebitModal(true); }}>
-                            <FontAwesomeIcon icon={faPlus} /> {t('addDebit')}
-                        </button>
-                    </div>
-                    <div className="table-responsive" style={{ height: '400px', border: '1px solid #dee2e6' }}>
-                        <table className="table table-striped table-hover mb-0">
-                            <thead className="sticky-top bg-light">
-                                <tr>
-                                    <th>{t('S.No')}</th>
-                                    <th>{t('supplier.name')}</th>
-                                    <th>{t('amount')}</th>
-                                    <th>{t('action')}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {debitEntries.length > 0 ? (
-                                    debitEntries.map((row, index) => (
-                                        <tr key={row.debit_id}>
-                                            <td>{index + 1}</td>
-                                            <td>{row.customer_supplier_name}</td>
-                                            <td>{row.debit_amount}</td>
-                                            <td>
-                                                <button className="btn btn-primary btn-sm me-2" onClick={() => handleEdit('debit', row)}>
-                                                    <FontAwesomeIcon icon={faPen} />
-                                                </button>
-                                                <button className="btn btn-danger btn-sm" onClick={() => handleDelete('debit', row.debit_id)}>
-                                                    <FontAwesomeIcon icon={faTrash} />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr><td colSpan="4" className="text-center">{t('noEntriesFound')}</td></tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                <div className="flex flex-col">
+                    <GlassCard className="p-6 h-full flex flex-col">
+                        <div className="flex justify-between items-center mb-6 pb-4 border-b border-nature-200 dark:border-nature-700/50">
+                            <div className="flex items-center">
+                                <div className="bg-nature-100 dark:bg-nature-800 p-3 rounded-xl mr-4 text-nature-600 dark:text-nature-300">
+                                    <FontAwesomeIcon icon={faMoneyBillTransfer} size="lg" />
+                                </div>
+                                <h4 className="text-xl font-bold text-nature-800 dark:text-nature-100">{t('purchaseDebit')}</h4>
+                            </div>
+                            <GlassButton
+                                variant="primary"
+                                onClick={() => { setEditItem(null); setShowDebitModal(true); }}
+                                className="text-sm px-4"
+                            >
+                                <FontAwesomeIcon icon={faPlus} className="mr-2"/> {t('addDebit')}
+                            </GlassButton>
+                        </div>
+                        <div className="flex-1 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
+                            <table className="w-full text-left border-collapse">
+                                <thead className="sticky top-0 bg-white/90 dark:bg-nature-800/90 backdrop-blur-md z-10">
+                                    <tr className="text-nature-500 dark:text-nature-400 border-b border-nature-200 dark:border-nature-700/50">
+                                        <th className="py-3 px-2 font-medium">{t('S.No')}</th>
+                                        <th className="py-3 px-2 font-medium">{t('supplier.name')}</th>
+                                        <th className="py-3 px-2 font-medium">{t('amount')}</th>
+                                        <th className="py-3 px-2 font-medium text-right">{t('action')}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {debitEntries.length > 0 ? (
+                                        debitEntries.map((row, index) => (
+                                            <tr key={row.debit_id} className="border-b border-nature-100 dark:border-nature-700/30 hover:bg-nature-50/50 dark:hover:bg-nature-800/50 transition-colors">
+                                                <td className="py-3 px-2 text-nature-600 dark:text-nature-300">{index + 1}</td>
+                                                <td className="py-3 px-2 text-nature-800 dark:text-nature-100">{row.customer_supplier_name}</td>
+                                                <td className="py-3 px-2 font-medium text-nature-800 dark:text-nature-100">₹ {row.debit_amount}</td>
+                                                <td className="py-3 px-2 text-right">
+                                                    <div className="flex justify-end gap-2">
+                                                        <button className="p-2 text-nature-500 hover:text-nature-700 bg-nature-100 hover:bg-nature-200 dark:bg-nature-800 dark:hover:bg-nature-700 rounded-lg transition-colors" onClick={() => handleEdit('debit', row)}>
+                                                            <FontAwesomeIcon icon={faPen} />
+                                                        </button>
+                                                        <button className="p-2 text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/50 rounded-lg transition-colors" onClick={() => handleDelete('debit', row.debit_id)}>
+                                                            <FontAwesomeIcon icon={faTrash} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr><td colSpan="4" className="py-8 text-center text-nature-500 dark:text-nature-400">{t('noEntriesFound')}</td></tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </GlassCard>
                 </div>
 
                 {/* Credit Column */}
-                <div className="col-12 col-md-6 mb-4">
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                        <h4 className="text-success">{t('salesCredit')}</h4>
-                        <button className="btn btn-primary" onClick={() => { setEditItem(null); setShowCreditModal(true); }}>
-                            <FontAwesomeIcon icon={faPlus} /> {t('addCredit')}
-                        </button>
-                    </div>
-                    <div className="table-responsive" style={{ height: '400px', border: '1px solid #dee2e6' }}>
-                        <table className="table table-striped table-hover mb-0">
-                            <thead className="sticky-top bg-light">
-                                <tr>
-                                    <th>{t('S.No')}</th>
-                                    <th>{t('customer.name')}</th>
-                                    <th>{t('amount')}</th>
-                                    <th>{t('action')}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {creditEntries.length > 0 ? (
-                                    creditEntries.map((row, index) => (
-                                        <tr key={row.credit_id}>
-                                            <td>{index + 1}</td>
-                                            <td>{row.customer_supplier_name}</td>
-                                            <td>{row.credit_amount}</td>
-                                            <td>
-                                                <button className="btn btn-primary btn-sm me-2" onClick={() => handleEdit('credit', row)}>
-                                                    <FontAwesomeIcon icon={faPen} />
-                                                </button>
-                                                <button className="btn btn-danger btn-sm" onClick={() => handleDelete('credit', row.credit_id)}>
-                                                    <FontAwesomeIcon icon={faTrash} />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr><td colSpan="4" className="text-center">{t('noEntriesFound')}</td></tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                <div className="flex flex-col">
+                    <GlassCard className="p-6 h-full flex flex-col">
+                        <div className="flex justify-between items-center mb-6 pb-4 border-b border-nature-200 dark:border-nature-700/50">
+                            <div className="flex items-center">
+                                <div className="bg-accent-blue/20 dark:bg-accent-blue/10 p-3 rounded-xl mr-4 text-accent-blue">
+                                    <FontAwesomeIcon icon={faHandHoldingDollar} size="lg" />
+                                </div>
+                                <h4 className="text-xl font-bold text-nature-800 dark:text-nature-100">{t('salesCredit')}</h4>
+                            </div>
+                            <GlassButton
+                                className="bg-accent-blue text-white hover:bg-blue-500 shadow-glow text-sm px-4"
+                                onClick={() => { setEditItem(null); setShowCreditModal(true); }}
+                            >
+                                <FontAwesomeIcon icon={faPlus} className="mr-2"/> {t('addCredit')}
+                            </GlassButton>
+                        </div>
+                        <div className="flex-1 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
+                            <table className="w-full text-left border-collapse">
+                                <thead className="sticky top-0 bg-white/90 dark:bg-nature-800/90 backdrop-blur-md z-10">
+                                    <tr className="text-nature-500 dark:text-nature-400 border-b border-nature-200 dark:border-nature-700/50">
+                                        <th className="py-3 px-2 font-medium">{t('S.No')}</th>
+                                        <th className="py-3 px-2 font-medium">{t('customer.name')}</th>
+                                        <th className="py-3 px-2 font-medium">{t('amount')}</th>
+                                        <th className="py-3 px-2 font-medium text-right">{t('action')}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {creditEntries.length > 0 ? (
+                                        creditEntries.map((row, index) => (
+                                            <tr key={row.credit_id} className="border-b border-nature-100 dark:border-nature-700/30 hover:bg-nature-50/50 dark:hover:bg-nature-800/50 transition-colors">
+                                                <td className="py-3 px-2 text-nature-600 dark:text-nature-300">{index + 1}</td>
+                                                <td className="py-3 px-2 text-nature-800 dark:text-nature-100">{row.customer_supplier_name}</td>
+                                                <td className="py-3 px-2 font-medium text-nature-800 dark:text-nature-100">₹ {row.credit_amount}</td>
+                                                <td className="py-3 px-2 text-right">
+                                                    <div className="flex justify-end gap-2">
+                                                        <button className="p-2 text-nature-500 hover:text-nature-700 bg-nature-100 hover:bg-nature-200 dark:bg-nature-800 dark:hover:bg-nature-700 rounded-lg transition-colors" onClick={() => handleEdit('credit', row)}>
+                                                            <FontAwesomeIcon icon={faPen} />
+                                                        </button>
+                                                        <button className="p-2 text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/50 rounded-lg transition-colors" onClick={() => handleDelete('credit', row.credit_id)}>
+                                                            <FontAwesomeIcon icon={faTrash} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr><td colSpan="4" className="py-8 text-center text-nature-500 dark:text-nature-400">{t('noEntriesFound')}</td></tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </GlassCard>
                 </div>
             </div>
 
