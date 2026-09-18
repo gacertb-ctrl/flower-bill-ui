@@ -1,0 +1,197 @@
+/* StockKPIs.css - 2026 ERP Inventory KPIs */
+.stock-kpis-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.stock-kpi-card {
+  background-color: var(--bg-surface, #FFFFFF);
+  border: 1px solid var(--border-subtle, #E5E7EB);
+  border-radius: var(--radius-lg, 0.75rem);
+  padding: 1.125rem 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.stock-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.stock-kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+}
+
+.stock-kpi-card.card-violet::before {
+  background-color: var(--primary, #6D28D9);
+}
+
+.stock-kpi-card.card-blue::before {
+  background-color: #2563EB;
+}
+
+.stock-kpi-card.card-emerald::before {
+  background-color: #059669;
+}
+
+.stock-kpi-card.card-amber::before {
+  background-color: #D97706;
+}
+
+.stock-kpi-icon-wrap {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-md, 0.5rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+  flex-shrink: 0;
+}
+
+.card-violet .stock-kpi-icon-wrap {
+  background-color: rgba(109, 40, 217, 0.1);
+  color: #6D28D9;
+}
+
+.card-blue .stock-kpi-icon-wrap {
+  background-color: rgba(37, 99, 235, 0.1);
+  color: #2563EB;
+}
+
+.card-emerald .stock-kpi-icon-wrap {
+  background-color: rgba(5, 150, 105, 0.1);
+  color: #059669;
+}
+
+.card-amber .stock-kpi-icon-wrap {
+  background-color: rgba(217, 119, 6, 0.1);
+  color: #D97706;
+}
+
+.stock-kpi-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.stock-kpi-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted, #6B7280);
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.01em;
+}
+
+.stock-kpi-value-group {
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+}
+
+.stock-kpi-value {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--text-main, #1F2937);
+  letter-spacing: -0.02em;
+}
+
+.stock-kpi-value.text-blue {
+  color: #2563EB;
+}
+
+.stock-kpi-value.text-emerald {
+  color: #059669;
+}
+
+.stock-kpi-value.text-amber {
+  color: #D97706;
+}
+
+.stock-kpi-unit {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted, #6B7280);
+}
+
+.stock-kpi-subtext {
+  font-size: 0.75rem;
+  color: var(--text-muted, #9CA3AF);
+  margin-top: 0.25rem;
+}
+
+/* Skeleton Loading */
+.stock-kpi-skeleton-line {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: erp-shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+.stock-kpi-skeleton-line.short {
+  width: 50%;
+  height: 12px;
+  margin-bottom: 8px;
+}
+
+.stock-kpi-skeleton-line.long {
+  width: 80%;
+  height: 24px;
+}
+
+@keyframes erp-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .stock-kpis-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .stock-kpis-grid {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 0.75rem;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .stock-kpi-card {
+    min-width: 220px;
+    scroll-snap-align: start;
+    flex-shrink: 0;
+    padding: 0.875rem 1rem;
+  }
+
+  .stock-kpi-value {
+    font-size: 1.25rem;
+  }
+}
+
+/* Dark Mode */
+.erp-dark .stock-kpi-card {
+  background-color: var(--bg-surface);
+  border-color: var(--border-subtle);
+}
+
+.erp-dark .stock-kpi-value {
+  color: #F9FAFB;
+}

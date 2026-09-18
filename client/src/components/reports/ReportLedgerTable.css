@@ -1,0 +1,376 @@
+/* ReportLedgerTable.css - 2026 ERP Report Financial Ledger Table */
+
+.erp-report-table-card {
+  background-color: var(--bg-surface, #FFFFFF);
+  border: 1px solid var(--border-subtle, #E5E7EB);
+  border-radius: var(--radius-xl, 1rem);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header & Search Bar */
+.report-table-toolbar {
+  padding: 0.875rem 1.25rem;
+  background-color: var(--bg-surface, #FFFFFF);
+  border-bottom: 1px solid var(--border-subtle, #E5E7EB);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.report-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  max-width: 360px;
+}
+
+.report-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9CA3AF;
+  font-size: 0.8rem;
+  pointer-events: none;
+}
+
+.report-search-input {
+  width: 100%;
+  padding: 0.45rem 1.75rem 0.45rem 2.1rem;
+  background-color: #F8FAFC;
+  border: 1px solid var(--border-subtle, #CBD5E1);
+  border-radius: var(--radius-md, 0.5rem);
+  font-size: 0.8125rem;
+  color: var(--text-main, #1F2937);
+  transition: all 0.15s ease;
+}
+
+.report-search-input:focus {
+  outline: none;
+  border-color: #6D28D9;
+  background-color: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
+}
+
+.report-clear-search {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #9CA3AF;
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.report-table-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--text-muted, #6B7280);
+}
+
+.report-count-badge {
+  background-color: rgba(109, 40, 217, 0.1);
+  color: #6D28D9;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
+/* Dense ERP Accounting Table */
+.report-table-container {
+  overflow-x: auto;
+  max-height: 540px;
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.8125rem;
+}
+
+.report-table thead th {
+  position: sticky;
+  top: 0;
+  background-color: #F8FAFC;
+  z-index: 10;
+  padding: 0.65rem 0.875rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #475569;
+  border-bottom: 1px solid var(--border-subtle, #E5E7EB);
+  white-space: nowrap;
+}
+
+.report-table tbody td {
+  padding: 0.55rem 0.875rem;
+  border-bottom: 1px solid var(--border-subtle, #E5E7EB);
+  vertical-align: middle;
+}
+
+.report-table tbody tr:hover {
+  background-color: #F8FAFC;
+}
+
+.col-sno-report {
+  width: 44px;
+  text-align: center;
+}
+
+.party-name-box {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.party-name-bold {
+  font-weight: 600;
+  color: var(--text-main, #1F2937);
+}
+
+.party-code-tag {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 0.08rem 0.35rem;
+  border-radius: 4px;
+  background-color: #EDE9FE;
+  color: #6D28D9;
+}
+
+/* Amounts */
+.report-financial-values {
+  font-weight: 700;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.amount-credit {
+  color: #059669;
+}
+
+.amount-debit {
+  color: #DC2626;
+}
+
+.amount-slash {
+  color: #9CA3AF;
+  margin: 0 0.35rem;
+}
+
+/* Action Buttons */
+.report-actions-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  justify-content: flex-end;
+}
+
+.btn-report-action {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm, 0.375rem);
+  border: 1px solid var(--border-subtle, #E5E7EB);
+  background: var(--bg-surface, #FFFFFF);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 0.8rem;
+}
+
+.btn-report-action.print {
+  color: #6D28D9;
+}
+
+.btn-report-action.print:hover {
+  background-color: #EDE9FE;
+  border-color: #6D28D9;
+}
+
+.btn-report-action.whatsapp {
+  color: #25D366;
+  border-color: rgba(37, 211, 102, 0.3);
+}
+
+.btn-report-action.whatsapp:hover {
+  background-color: rgba(37, 211, 102, 0.1);
+  border-color: #25D366;
+}
+
+/* Table Footer Row */
+.report-table tfoot td {
+  position: sticky;
+  bottom: 0;
+  background-color: #F8FAFC;
+  z-index: 10;
+  padding: 0.75rem 0.875rem;
+  font-weight: 800;
+  font-size: 0.875rem;
+  color: #1E293B;
+  border-top: 2px solid #CBD5E1;
+}
+
+/* Responsive Mobile Cards */
+.report-mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.875rem;
+}
+
+.report-mobile-card {
+  background-color: var(--bg-surface, #FFFFFF);
+  border: 1px solid var(--border-subtle, #E5E7EB);
+  border-radius: var(--radius-lg, 0.75rem);
+  padding: 0.875rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.mobile-card-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mobile-sno-chip {
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background-color: #F1F5F9;
+  color: #64748B;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-card-amounts-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #F8FAFC;
+  padding: 0.45rem 0.65rem;
+  border-radius: var(--radius-md, 0.5rem);
+  font-size: 0.8125rem;
+}
+
+/* Empty State */
+.erp-report-empty {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.report-empty-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 9999px;
+  background-color: #F1F5F9;
+  color: #94A3B8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 0.875rem;
+}
+
+.report-empty-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-main, #1F2937);
+  margin-bottom: 0.25rem;
+}
+
+.report-empty-desc {
+  font-size: 0.8125rem;
+  color: var(--text-muted, #6B7280);
+}
+
+/* Skeletons */
+.report-skeleton-line {
+  height: 12px;
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Dark Mode Overrides */
+.erp-dark .erp-report-table-card {
+  background-color: #1E293B;
+  border-color: #334155;
+}
+
+.erp-dark .report-table-toolbar {
+  background-color: #1E293B;
+  border-bottom-color: #334155;
+}
+
+.erp-dark .report-search-input {
+  background-color: #0F172A;
+  border-color: #334155;
+  color: #F8FAFC;
+}
+
+.erp-dark .report-table thead th {
+  background-color: #0F172A;
+  border-bottom-color: #334155;
+  color: #94A3B8;
+}
+
+.erp-dark .report-table tbody td {
+  border-bottom-color: #334155;
+}
+
+.erp-dark .report-table tbody tr:hover {
+  background-color: #0F172A;
+}
+
+.erp-dark .party-name-bold {
+  color: #F8FAFC;
+}
+
+.erp-dark .btn-report-action {
+  background-color: #0F172A;
+  border-color: #334155;
+}
+
+.erp-dark .report-table tfoot td {
+  background-color: #0F172A;
+  border-top-color: #334155;
+  color: #F8FAFC;
+}
+
+.erp-dark .report-mobile-card {
+  background-color: #1E293B;
+  border-color: #334155;
+}
+
+.erp-dark .mobile-card-amounts-row {
+  background-color: #0F172A;
+}

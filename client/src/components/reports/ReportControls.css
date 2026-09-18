@@ -1,0 +1,372 @@
+/* ReportControls.css - 2026 ERP Report Control Center */
+
+.erp-report-controls-card {
+  background-color: var(--bg-surface, #FFFFFF);
+  border: 1px solid var(--border-subtle, #E5E7EB);
+  border-radius: var(--radius-xl, 1rem);
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Primary Bar: Period & Type Switchers */
+.report-controls-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.875rem;
+  border-bottom: 1px solid var(--border-subtle, #F1F5F9);
+  padding-bottom: 1rem;
+}
+
+.report-mode-group {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  flex-wrap: wrap;
+}
+
+/* Period Segmented Switcher */
+.erp-period-segmented-switch {
+  display: inline-flex;
+  background-color: #F1F5F9;
+  padding: 0.25rem;
+  border-radius: var(--radius-lg, 0.75rem);
+  border: 1px solid var(--border-subtle, #E2E8F0);
+  gap: 0.25rem;
+}
+
+.period-segment-btn {
+  padding: 0.45rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  border: none;
+  background: transparent;
+  color: #64748B;
+  border-radius: var(--radius-md, 0.5rem);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  white-space: nowrap;
+}
+
+.period-segment-btn.active {
+  background-color: #FFFFFF;
+  color: #6D28D9;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.period-segment-btn:hover:not(.active) {
+  color: #1E293B;
+}
+
+/* Report Type Pills */
+.erp-type-pill-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: #F8FAFC;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-lg, 0.75rem);
+  border: 1px solid var(--border-subtle, #E2E8F0);
+}
+
+.type-pill-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748B;
+  margin-right: 0.25rem;
+}
+
+.type-pill-btn {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: transparent;
+  color: #475569;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.type-pill-btn.active.purchase {
+  background-color: rgba(220, 38, 38, 0.1);
+  color: #DC2626;
+  border-color: rgba(220, 38, 38, 0.25);
+  font-weight: 700;
+}
+
+.type-pill-btn.active.sales {
+  background-color: rgba(5, 150, 105, 0.1);
+  color: #059669;
+  border-color: rgba(5, 150, 105, 0.25);
+  font-weight: 700;
+}
+
+/* Secondary Row: Date/Month Picker & Actions */
+.report-controls-bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* Date / Month Picker Area */
+.report-date-filter-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.date-step-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md, 0.5rem);
+  border: 1px solid var(--border-subtle, #E5E7EB);
+  background: var(--bg-surface, #FFFFFF);
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 0.8rem;
+}
+
+.date-step-btn:hover {
+  background-color: #F1F5F9;
+  color: #1E293B;
+}
+
+.report-date-input {
+  border: 1px solid var(--border-subtle, #CBD5E1);
+  border-radius: var(--radius-md, 0.5rem);
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #1E293B;
+  background-color: #FFFFFF;
+  outline: none;
+  cursor: pointer;
+}
+
+.report-date-input:focus {
+  border-color: #6D28D9;
+  box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.15);
+}
+
+.report-select-control {
+  border: 1px solid var(--border-subtle, #CBD5E1);
+  border-radius: var(--radius-md, 0.5rem);
+  padding: 0.4rem 1.75rem 0.4rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #1E293B;
+  background-color: #FFFFFF;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 0.9em;
+}
+
+.report-select-control:focus {
+  outline: none;
+  border-color: #6D28D9;
+  box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.15);
+}
+
+.report-year-input {
+  width: 90px;
+  border: 1px solid var(--border-subtle, #CBD5E1);
+  border-radius: var(--radius-md, 0.5rem);
+  padding: 0.4rem 0.6rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #1E293B;
+  text-align: center;
+}
+
+.report-year-input:focus {
+  outline: none;
+  border-color: #6D28D9;
+  box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.15);
+}
+
+.report-tamil-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  background: linear-gradient(135deg, rgba(109, 40, 217, 0.08) 0%, rgba(219, 39, 119, 0.08) 100%);
+  border: 1px solid rgba(109, 40, 217, 0.15);
+  border-radius: 9999px;
+  color: #6D28D9;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.report-today-pill {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: var(--radius-md, 0.5rem);
+  border: 1px solid #DDD6FE;
+  background-color: #F5F3FF;
+  color: #6D28D9;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.report-today-pill:hover {
+  background-color: #EDE9FE;
+  border-color: #C4B5FD;
+}
+
+/* Primary Action Buttons */
+.report-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.btn-download-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.15rem;
+  background-color: #6D28D9;
+  color: #FFFFFF;
+  border-radius: var(--radius-md, 0.5rem);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(109, 40, 217, 0.2);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-download-all:hover {
+  background-color: #5B21B6;
+  box-shadow: 0 3px 6px rgba(109, 40, 217, 0.3);
+}
+
+.btn-update-od {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.15rem;
+  background-color: #D97706;
+  color: #FFFFFF;
+  border-radius: var(--radius-md, 0.5rem);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(217, 119, 6, 0.2);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-update-od:hover {
+  background-color: #B45309;
+  box-shadow: 0 3px 6px rgba(217, 119, 6, 0.3);
+}
+
+.btn-update-od:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 768px) {
+  .erp-report-controls-card {
+    padding: 1rem;
+    gap: 0.875rem;
+  }
+  .report-controls-top-row,
+  .report-controls-bottom-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  .erp-period-segmented-switch {
+    width: 100%;
+  }
+  .period-segment-btn {
+    flex: 1;
+    justify-content: center;
+  }
+  .erp-type-pill-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .report-date-filter-wrap {
+    width: 100%;
+  }
+  .report-date-input,
+  .report-select-control {
+    flex: 1;
+    min-width: 130px;
+  }
+  .report-actions-group {
+    width: 100%;
+    flex-direction: column;
+  }
+  .btn-download-all,
+  .btn-update-od {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Dark Mode Overrides */
+.erp-dark .erp-report-controls-card {
+  background-color: #1E293B;
+  border-color: #334155;
+}
+
+.erp-dark .report-controls-top-row {
+  border-bottom-color: #334155;
+}
+
+.erp-dark .erp-period-segmented-switch {
+  background-color: #0F172A;
+  border-color: #334155;
+}
+
+.erp-dark .period-segment-btn.active {
+  background-color: #1E293B;
+  color: #A78BFA;
+}
+
+.erp-dark .erp-type-pill-group {
+  background-color: #0F172A;
+  border-color: #334155;
+}
+
+.erp-dark .report-date-input,
+.erp-dark .report-select-control,
+.erp-dark .report-year-input,
+.erp-dark .date-step-btn {
+  background-color: #0F172A;
+  border-color: #334155;
+  color: #F8FAFC;
+}

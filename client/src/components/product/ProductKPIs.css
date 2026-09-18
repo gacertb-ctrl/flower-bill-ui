@@ -1,0 +1,139 @@
+/* Product KPI Section Styles */
+
+.product-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.kpi-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: var(--shadow-xs);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.kpi-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.kpi-violet .kpi-icon-wrapper {
+  background-color: var(--primary-light);
+  color: var(--primary);
+}
+
+.kpi-green .kpi-icon-wrapper {
+  background-color: var(--success-light);
+  color: var(--success);
+}
+
+.kpi-amber .kpi-icon-wrapper {
+  background-color: var(--warning-light);
+  color: var(--warning);
+}
+
+.kpi-red .kpi-icon-wrapper {
+  background-color: var(--error-light);
+  color: var(--error);
+}
+
+.kpi-content {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.kpi-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  line-height: 1.2;
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kpi-value {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.kpi-amber .kpi-value {
+  color: #B45309;
+}
+
+.kpi-red .kpi-value {
+  color: var(--error);
+}
+
+/* Responsive for Tablets and Mobiles */
+@media (max-width: 991px) {
+  .product-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .kpi-card {
+    padding: 0.875rem 1rem;
+    gap: 0.75rem;
+  }
+
+  .kpi-icon-wrapper {
+    width: 38px;
+    height: 38px;
+    font-size: 1.05rem;
+  }
+
+  .kpi-value {
+    font-size: 1.15rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-kpi-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .kpi-card {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .kpi-icon-wrapper {
+    width: 32px;
+    height: 32px;
+    font-size: 0.95rem;
+  }
+
+  .kpi-label {
+    font-size: 0.6875rem;
+  }
+
+  .kpi-value {
+    font-size: 1.05rem;
+  }
+}

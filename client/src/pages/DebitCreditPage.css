@@ -1,0 +1,397 @@
+/* DebitCreditPage.css - 2026 ERP Debit / Credit Management Page */
+
+.erp-debit-credit-page {
+  padding: 1.25rem 1.5rem 2.5rem;
+  min-height: calc(100vh - 65px);
+  background-color: var(--bg-body, #F8FAFC);
+}
+
+@media (max-width: 768px) {
+  .erp-debit-credit-page {
+    padding: 1rem 0.875rem 2rem;
+  }
+}
+
+/* Page Header & Top Bar */
+.erp-dc-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.erp-dc-header-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.erp-dc-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-main, #1F2937);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.erp-dc-subtitle {
+  font-size: 0.8125rem;
+  color: var(--text-muted, #6B7280);
+  margin-top: 0.2rem;
+}
+
+/* Date Controls Area */
+.erp-dc-date-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  background-color: var(--bg-surface, #FFFFFF);
+  border: 1px solid var(--border-subtle, #E5E7EB);
+  padding: 0.35rem 0.6rem;
+  border-radius: var(--radius-lg, 0.75rem);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.erp-date-nav-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md, 0.5rem);
+  border: 1px solid var(--border-subtle, #E5E7EB);
+  background: var(--bg-surface, #FFFFFF);
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 0.8rem;
+}
+
+.erp-date-nav-btn:hover {
+  background-color: #F1F5F9;
+  color: #1E293B;
+}
+
+.erp-dc-date-input {
+  border: 1px solid var(--border-subtle, #E5E7EB);
+  border-radius: var(--radius-md, 0.5rem);
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #1E293B;
+  outline: none;
+  cursor: pointer;
+}
+
+.erp-dc-date-input:focus {
+  border-color: #6D28D9;
+  box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.15);
+}
+
+.erp-today-btn {
+  padding: 0.3rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: var(--radius-md, 0.5rem);
+  border: 1px solid #DDD6FE;
+  background-color: #F5F3FF;
+  color: #6D28D9;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.erp-today-btn:hover {
+  background-color: #EDE9FE;
+  border-color: #C4B5FD;
+}
+
+.erp-tamil-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  background: linear-gradient(135deg, rgba(109, 40, 217, 0.08) 0%, rgba(219, 39, 119, 0.08) 100%);
+  border: 1px solid rgba(109, 40, 217, 0.15);
+  border-radius: 9999px;
+  color: #6D28D9;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.erp-refresh-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md, 0.5rem);
+  border: 1px solid var(--border-subtle, #E5E7EB);
+  background: var(--bg-surface, #FFFFFF);
+  color: #6B7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 0.8rem;
+}
+
+.erp-refresh-btn:hover {
+  background-color: #F1F5F9;
+  color: #1F2937;
+}
+
+/* KPI Summary Cards Grid */
+.erp-dc-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 992px) {
+  .erp-dc-kpi-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}
+
+.erp-dc-kpi-card {
+  background-color: var(--bg-surface, #FFFFFF);
+  border: 1px solid var(--border-subtle, #E5E7EB);
+  border-radius: var(--radius-xl, 1rem);
+  padding: 1.15rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.erp-dc-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.erp-dc-kpi-card.debit-card {
+  border-left: 4px solid #DC2626;
+}
+
+.erp-dc-kpi-card.credit-card {
+  border-left: 4px solid #059669;
+}
+
+.erp-dc-kpi-card.balance-card.surplus {
+  border-left: 4px solid #6D28D9;
+}
+
+.erp-dc-kpi-card.balance-card.deficit {
+  border-left: 4px solid #D97706;
+}
+
+.kpi-top-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.kpi-label-text {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted, #6B7280);
+}
+
+.kpi-icon-pill {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md, 0.5rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.kpi-icon-pill.debit {
+  background-color: rgba(220, 38, 38, 0.1);
+  color: #DC2626;
+}
+
+.kpi-icon-pill.credit {
+  background-color: rgba(5, 150, 105, 0.1);
+  color: #059669;
+}
+
+.kpi-icon-pill.balance {
+  background-color: rgba(109, 40, 217, 0.1);
+  color: #6D28D9;
+}
+
+.kpi-amount-val {
+  font-size: 1.45rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.01em;
+}
+
+.kpi-amount-val.debit {
+  color: #DC2626;
+}
+
+.kpi-amount-val.credit {
+  color: #059669;
+}
+
+.kpi-amount-val.balance-positive {
+  color: #6D28D9;
+}
+
+.kpi-amount-val.balance-negative {
+  color: #DC2626;
+}
+
+.kpi-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted, #6B7280);
+}
+
+.kpi-status-tag {
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+}
+
+.kpi-status-tag.surplus {
+  background-color: rgba(5, 150, 105, 0.1);
+  color: #059669;
+}
+
+.kpi-status-tag.deficit {
+  background-color: rgba(220, 38, 38, 0.1);
+  color: #DC2626;
+}
+
+.kpi-status-tag.neutral {
+  background-color: #F1F5F9;
+  color: #64748B;
+}
+
+/* Mobile Segmented Control (Tabs) */
+.erp-mobile-tab-bar {
+  display: flex;
+  background-color: #E2E8F0;
+  padding: 0.25rem;
+  border-radius: var(--radius-lg, 0.75rem);
+  margin-bottom: 1rem;
+  gap: 0.25rem;
+}
+
+.mobile-segment-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  border: none;
+  background: transparent;
+  color: #64748B;
+  border-radius: var(--radius-md, 0.5rem);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mobile-segment-btn.active.debit {
+  background-color: #FFFFFF;
+  color: #DC2626;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.mobile-segment-btn.active.credit {
+  background-color: #FFFFFF;
+  color: #059669;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.segment-badge {
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.1rem 0.45rem;
+  border-radius: 9999px;
+}
+
+.segment-badge.debit {
+  background-color: rgba(220, 38, 38, 0.12);
+  color: #DC2626;
+}
+
+.segment-badge.credit {
+  background-color: rgba(5, 150, 105, 0.12);
+  color: #059669;
+}
+
+/* Dual Column Layout */
+.erp-dc-dual-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  align-items: stretch;
+}
+
+@media (max-width: 991px) {
+  .erp-dc-dual-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dark Mode Overrides */
+.erp-dark .erp-debit-credit-page {
+  background-color: #0F172A;
+}
+
+.erp-dark .erp-dc-title {
+  color: #F8FAFC;
+}
+
+.erp-dark .erp-dc-date-bar {
+  background-color: #1E293B;
+  border-color: #334155;
+}
+
+.erp-dark .erp-date-nav-btn,
+.erp-dark .erp-refresh-btn {
+  background-color: #1E293B;
+  border-color: #334155;
+  color: #94A3B8;
+}
+
+.erp-dark .erp-dc-date-input {
+  background-color: #0F172A;
+  border-color: #334155;
+  color: #F8FAFC;
+}
+
+.erp-dark .erp-dc-kpi-card {
+  background-color: #1E293B;
+  border-color: #334155;
+}
+
+.erp-dark .erp-mobile-tab-bar {
+  background-color: #1E293B;
+}
+
+.erp-dark .mobile-segment-btn.active.debit,
+.erp-dark .mobile-segment-btn.active.credit {
+  background-color: #334155;
+}
+

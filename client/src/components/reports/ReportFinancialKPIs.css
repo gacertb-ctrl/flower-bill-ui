@@ -1,0 +1,161 @@
+/* ReportFinancialKPIs.css - 2026 ERP Report Financial Summary Cards */
+
+.erp-report-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (max-width: 992px) {
+  .erp-report-kpi-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}
+
+.report-kpi-card {
+  background-color: var(--bg-surface, #FFFFFF);
+  border: 1px solid var(--border-subtle, #E5E7EB);
+  border-radius: var(--radius-xl, 1rem);
+  padding: 1.15rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.report-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.report-kpi-card.credit-card {
+  border-left: 4px solid #059669;
+}
+
+.report-kpi-card.debit-card {
+  border-left: 4px solid #DC2626;
+}
+
+.report-kpi-card.balance-card.surplus {
+  border-left: 4px solid #6D28D9;
+}
+
+.report-kpi-card.balance-card.deficit {
+  border-left: 4px solid #D97706;
+}
+
+.kpi-top-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.65rem;
+}
+
+.kpi-title-text {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted, #6B7280);
+}
+
+.kpi-icon-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md, 0.5rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.kpi-icon-badge.credit {
+  background-color: rgba(5, 150, 105, 0.1);
+  color: #059669;
+}
+
+.kpi-icon-badge.debit {
+  background-color: rgba(220, 38, 38, 0.1);
+  color: #DC2626;
+}
+
+.kpi-icon-badge.balance {
+  background-color: rgba(109, 40, 217, 0.1);
+  color: #6D28D9;
+}
+
+.kpi-amount-display {
+  font-size: 1.45rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.01em;
+}
+
+.kpi-amount-display.credit {
+  color: #059669;
+}
+
+.kpi-amount-display.debit {
+  color: #DC2626;
+}
+
+.kpi-amount-display.balance-pos {
+  color: #6D28D9;
+}
+
+.kpi-amount-display.balance-neg {
+  color: #DC2626;
+}
+
+.kpi-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted, #6B7280);
+}
+
+.kpi-tag {
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+}
+
+.kpi-tag.inflow {
+  background-color: rgba(5, 150, 105, 0.1);
+  color: #059669;
+}
+
+.kpi-tag.outflow {
+  background-color: rgba(220, 38, 38, 0.1);
+  color: #DC2626;
+}
+
+.kpi-tag.surplus {
+  background-color: rgba(109, 40, 217, 0.1);
+  color: #6D28D9;
+}
+
+.kpi-tag.deficit {
+  background-color: rgba(217, 119, 6, 0.1);
+  color: #D97706;
+}
+
+/* Dark Mode Overrides */
+.erp-dark .report-kpi-card {
+  background-color: #1E293B;
+  border-color: #334155;
+}
+
+.erp-dark .kpi-title-text {
+  color: #94A3B8;
+}
+
+.erp-dark .kpi-amount-display.balance-pos {
+  color: #A78BFA;
+}

@@ -1,0 +1,224 @@
+/* SearchableSelect.css - Custom Modern ERP Searchable Select Dropdown */
+
+.searchable-select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Toggle input-like control */
+.searchable-select-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 34px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #1E293B;
+  background-color: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  outline: none;
+}
+
+.searchable-select-toggle:hover:not(.is-disabled) {
+  border-color: #94A3B8;
+}
+
+.searchable-select-toggle:focus,
+.searchable-select-toggle.is-open {
+  border-color: #6D28D9;
+  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.15);
+}
+
+.searchable-select-toggle.is-disabled {
+  background-color: #F1F5F9;
+  color: #94A3B8;
+  cursor: not-allowed;
+  border-color: #E2E8F0;
+}
+
+.searchable-select-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 0.5rem;
+}
+
+.searchable-select-label.placeholder-text {
+  color: #94A3B8;
+  font-weight: 400;
+}
+
+.searchable-select-arrow {
+  color: #94A3B8;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.searchable-select-arrow.arrow-up {
+  transform: rotate(180deg);
+  color: #6D28D9;
+}
+
+/* Dropdown popover menu (Rendered via Portal to document.body) */
+.searchable-select-menu {
+  background-color: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.08);
+  z-index: 99999;
+  overflow: hidden;
+  animation: searchableSelectFadeIn 0.12s ease-out;
+}
+
+@keyframes searchableSelectFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Search input header */
+.searchable-select-search-wrap {
+  padding: 0.5rem;
+  background-color: #FFFFFF;
+  border-bottom: 1px solid #F1F5F9;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.searchable-select-search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  padding: 0.3rem 0.55rem;
+  transition: border-color 0.15s ease;
+}
+
+.searchable-select-search-box:focus-within {
+  border-color: #6D28D9;
+  background-color: #FFFFFF;
+  box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.12);
+}
+
+.searchable-select-search-icon {
+  color: #94A3B8;
+  font-size: 0.75rem;
+}
+
+.searchable-select-search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  font-size: 0.8125rem;
+  color: #1E293B;
+  padding: 0.15rem 0;
+}
+
+.searchable-select-search-input::placeholder {
+  color: #94A3B8;
+}
+
+.searchable-select-clear-btn {
+  border: none;
+  background: none;
+  color: #94A3B8;
+  cursor: pointer;
+  padding: 0 0.2rem;
+  font-size: 0.9rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.searchable-select-clear-btn:hover {
+  color: #475569;
+}
+
+/* Options list */
+.searchable-select-options-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0;
+  overflow-y: auto;
+}
+
+/* Smooth custom scrollbars for options list */
+.searchable-select-options-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.searchable-select-options-list::-webkit-scrollbar-track {
+  background: #F8FAFC;
+}
+
+.searchable-select-options-list::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+
+.searchable-select-options-list::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+.searchable-select-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 38px;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.84rem;
+  line-height: 1.4;
+  font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+  transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.searchable-select-option:hover,
+.searchable-select-option.is-focused {
+  background-color: #F5F3FF;
+  color: #6D28D9;
+}
+
+.searchable-select-option.is-selected {
+  font-weight: 700;
+  color: #6D28D9;
+  background-color: #EDE9FE;
+}
+
+.searchable-select-option-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.searchable-select-option-check {
+  color: #6D28D9;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.searchable-select-empty {
+  padding: 1.25rem 0.75rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #94A3B8;
+}

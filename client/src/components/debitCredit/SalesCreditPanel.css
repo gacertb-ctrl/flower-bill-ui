@@ -1,0 +1,7 @@
+/* SalesCreditPanel.css - 2026 ERP Sales Credit Styling */
+@import './PurchaseDebitPanel.css';
+
+/* Any credit-specific overrides if needed */
+.erp-financial-panel.credit-panel {
+  border-top: 3px solid #059669;
+}
