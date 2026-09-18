@@ -1,227 +1,375 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getDebitEntries, getCreditEntries, deleteDebitEntry, deleteCreditEntry } from '../api/debitCreditAPI';
-import DebitCreditModal from '../components/entry/DebitCreditModal.jsx';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash, faPlus, faPen, faCalendarDays, faMoneyBillTransfer, faHandHoldingDollar } from '@fortawesome/free-solid-svg-icons';
-import DebitCreditUpdateModal from '../components/entry/DebitCreditUpdateModal.jsx';
-import GlassCard from '../components/ui/GlassCard';
-import GlassButton from '../components/ui/GlassButton';
+import {
+  faCalendarAlt,
+  faChevronLeft,
+  faChevronRight,
+  faRotateRight,
+  faArrowUp,
+  faArrowDown,
+  faFileInvoiceDollar,
+  faCoins
+} from '@fortawesome/free-solid-svg-icons';
+import ERPLayout from '../components/layout/ERPLayout';
+import PurchaseDebitPanel from '../components/debitCredit/PurchaseDebitPanel';
+import SalesCreditPanel from '../components/debitCredit/SalesCreditPanel';
+import DebitCreditEntryModal from '../components/debitCredit/DebitCreditEntryModal';
+import DebitCreditAmountModal from '../components/debitCredit/DebitCreditAmountModal';
+import {
+  getDebitEntries,
+  getCreditEntries,
+  deleteDebitEntry,
+  deleteCreditEntry
+} from '../api/debitCreditAPI';
+import { fetchTamilDate } from '../api/entryAPI';
+import './DebitCreditPage.css';
 
 const DebitCreditPage = () => {
-    const { t } = useTranslation();
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-    const [debitEntries, setDebitEntries] = useState([]);
-    const [creditEntries, setCreditEntries] = useState([]);
+  const { t } = useTranslation();
 
-    const [showDebitModal, setShowDebitModal] = useState(false);
-    const [showCreditModal, setShowCreditModal] = useState(false);
-    const [editItem, setEditItem] = useState(null);
-    const [showUpdateModal, setShowUpdateModal] = useState(false);
-    const [updateType, setUpdateType] = useState(null);
+  // Date State
+  const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [tamilDateInfo, setTamilDateInfo] = useState('');
 
-    const loadData = useCallback(async () => {
-        try {
-            const debits = await getDebitEntries(date);
-            const credits = await getCreditEntries(date);
-            setDebitEntries(debits || []);
-            setCreditEntries(credits || []);
-        } catch (error) {
-            console.error("Error loading data", error);
+  // Data States
+  const [debitEntries, setDebitEntries] = useState([]);
+  const [creditEntries, setCreditEntries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Mobile segmented tab: 'debit' | 'credit'
+  const [activeMobileTab, setActiveMobileTab] = useState('debit');
+
+  // Modals
+  const [showDebitModal, setShowDebitModal] = useState(false);
+  const [showCreditModal, setShowCreditModal] = useState(false);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [editItem, setEditItem] = useState(null);
+  const [updateType, setUpdateType] = useState('debit');
+
+  // Load Data
+  const loadData = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
+
+    try {
+      const [debitRes, creditRes] = await Promise.all([
+        getDebitEntries(date).catch(() => []),
+        getCreditEntries(date).catch(() => [])
+      ]);
+      setDebitEntries(Array.isArray(debitRes) ? debitRes : []);
+      setCreditEntries(Array.isArray(creditRes) ? creditRes : []);
+    } catch (error) {
+      console.error("Error fetching debit/credit data:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [date]);
+
+  // Load Tamil Date
+  useEffect(() => {
+    let isMounted = true;
+    const loadTamilInfo = async () => {
+      try {
+        const info = await fetchTamilDate(date);
+        if (isMounted && info) {
+          setTamilDateInfo(`${info.tamil_month_name_ta || ''} ${info.tamil_date || ''}`);
         }
-    }, [date]);
+      } catch (err) {
+        if (isMounted) setTamilDateInfo('');
+      }
+    };
+    loadTamilInfo();
+    return () => { isMounted = false; };
+  }, [date]);
 
-    useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
-    const handleDelete = async (type, id) => {
-        if (window.confirm(t('confirm.deleteEntry'))) {
-            try {
-                if (type === 'debit') await deleteDebitEntry(id);
-                else await deleteCreditEntry(id);
-                loadData();
-            } catch (error) {
-                console.error("Error deleting entry", error);
-            }
+  // Date Navigation Helpers
+  const handlePrevDay = () => {
+    const current = new Date(date);
+    current.setDate(current.getDate() - 1);
+    setDate(current.toISOString().split('T')[0]);
+  };
+
+  const handleNextDay = () => {
+    const current = new Date(date);
+    current.setDate(current.getDate() + 1);
+    setDate(current.toISOString().split('T')[0]);
+  };
+
+  const handleToday = () => {
+    const today = new Date().toISOString().split('T')[0];
+    setDate(today);
+  };
+
+  // Delete Action with Confirmation
+  const handleDelete = async (type, id) => {
+    const confirmText = t('confirm.deleteEntry') || 'இப்பதிவை நீக்க உறுதிப்படுத்துகிறீர்களா?';
+    if (window.confirm(confirmText)) {
+      try {
+        if (type === 'debit') {
+          await deleteDebitEntry(id);
+        } else {
+          await deleteCreditEntry(id);
         }
-    };
+        loadData(true);
+      } catch (error) {
+        console.error("Error deleting entry", error);
+        alert(t('messages.failedToDeleteEntry') || 'பதிவை நீக்க முடியவில்லை');
+      }
+    }
+  };
 
-    const handleEdit = (type, row) => {
-        setEditItem({
-            id: type === 'debit' ? row.debit_id : row.credit_id,
-            customer_supplier_code: row.customer_supplier_code || row.code,
-            amount: type === 'debit' ? row.debit_amount : row.credit_amount
-        });
-        setUpdateType(type);
-        setShowUpdateModal(true);
-    };
+  // Edit Action
+  const handleEdit = (type, row) => {
+    setEditItem({
+      id: type === 'debit' ? (row.debit_id || row.id) : (row.credit_id || row.id),
+      customer_supplier_code: row.customer_supplier_code || row.code || '',
+      customer_supplier_name: row.customer_supplier_name || row.name || '',
+      amount: type === 'debit' ? row.debit_amount : row.credit_amount
+    });
+    setUpdateType(type);
+    setShowUpdateModal(true);
+  };
 
-    const closeModal = () => {
-        setShowDebitModal(false);
-        setShowCreditModal(false);
-        setEditItem(null);
-    };
+  // KPI Calculations
+  const totalDebit = useMemo(() => {
+    return debitEntries.reduce((sum, item) => sum + (parseFloat(item.debit_amount) || 0), 0);
+  }, [debitEntries]);
 
-    return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
-            {/* Header Section */}
-            <GlassCard className="p-6 mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
-                <div>
-                    <h2 className="text-2xl font-bold text-nature-800 dark:text-nature-100">{t('Debit / Credit Tracking')}</h2>
-                    <p className="text-nature-500 dark:text-nature-400 text-sm mt-1">{t('Manage your financial transactions')}</p>
-                </div>
+  const totalCredit = useMemo(() => {
+    return creditEntries.reduce((sum, item) => sum + (parseFloat(item.credit_amount) || 0), 0);
+  }, [creditEntries]);
 
-                <div className="flex items-center bg-white/50 dark:bg-nature-900/50 px-4 py-2 rounded-xl shadow-sm border border-nature-200 dark:border-nature-700/50">
-                    <FontAwesomeIcon icon={faCalendarDays} className="text-nature-500 mr-3" />
-                    <input
-                        type="date"
-                        className="bg-transparent border-none text-nature-800 dark:text-nature-100 font-semibold focus:outline-none focus:ring-0"
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
-                    />
-                </div>
-            </GlassCard>
+  const formatCurrency = (val) => {
+    const num = parseFloat(val) || 0;
+    return `₹${num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Debit Column */}
-                <div className="flex flex-col">
-                    <GlassCard className="p-6 h-full flex flex-col">
-                        <div className="flex justify-between items-center mb-6 pb-4 border-b border-nature-200 dark:border-nature-700/50">
-                            <div className="flex items-center">
-                                <div className="bg-nature-100 dark:bg-nature-800 p-3 rounded-xl mr-4 text-nature-600 dark:text-nature-300">
-                                    <FontAwesomeIcon icon={faMoneyBillTransfer} size="lg" />
-                                </div>
-                                <h4 className="text-xl font-bold text-nature-800 dark:text-nature-100">{t('purchaseDebit')}</h4>
-                            </div>
-                            <GlassButton
-                                variant="primary"
-                                onClick={() => { setEditItem(null); setShowDebitModal(true); }}
-                                className="text-sm px-4"
-                            >
-                                <FontAwesomeIcon icon={faPlus} className="mr-2"/> {t('addDebit')}
-                            </GlassButton>
-                        </div>
-                        <div className="flex-1 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
-                            <table className="w-full text-left border-collapse">
-                                <thead className="sticky top-0 bg-white/90 dark:bg-nature-800/90 backdrop-blur-md z-10">
-                                    <tr className="text-nature-500 dark:text-nature-400 border-b border-nature-200 dark:border-nature-700/50">
-                                        <th className="py-3 px-2 font-medium">{t('S.No')}</th>
-                                        <th className="py-3 px-2 font-medium">{t('supplier.name')}</th>
-                                        <th className="py-3 px-2 font-medium">{t('amount')}</th>
-                                        <th className="py-3 px-2 font-medium text-right">{t('action')}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {debitEntries.length > 0 ? (
-                                        debitEntries.map((row, index) => (
-                                            <tr key={row.debit_id} className="border-b border-nature-100 dark:border-nature-700/30 hover:bg-nature-50/50 dark:hover:bg-nature-800/50 transition-colors">
-                                                <td className="py-3 px-2 text-nature-600 dark:text-nature-300">{index + 1}</td>
-                                                <td className="py-3 px-2 text-nature-800 dark:text-nature-100">{row.customer_supplier_name}</td>
-                                                <td className="py-3 px-2 font-medium text-nature-800 dark:text-nature-100">₹ {row.debit_amount}</td>
-                                                <td className="py-3 px-2 text-right">
-                                                    <div className="flex justify-end gap-2">
-                                                        <button className="p-2 text-nature-500 hover:text-nature-700 bg-nature-100 hover:bg-nature-200 dark:bg-nature-800 dark:hover:bg-nature-700 rounded-lg transition-colors" onClick={() => handleEdit('debit', row)}>
-                                                            <FontAwesomeIcon icon={faPen} />
-                                                        </button>
-                                                        <button className="p-2 text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/50 rounded-lg transition-colors" onClick={() => handleDelete('debit', row.debit_id)}>
-                                                            <FontAwesomeIcon icon={faTrash} />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr><td colSpan="4" className="py-8 text-center text-nature-500 dark:text-nature-400">{t('noEntriesFound')}</td></tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </GlassCard>
-                </div>
-
-                {/* Credit Column */}
-                <div className="flex flex-col">
-                    <GlassCard className="p-6 h-full flex flex-col">
-                        <div className="flex justify-between items-center mb-6 pb-4 border-b border-nature-200 dark:border-nature-700/50">
-                            <div className="flex items-center">
-                                <div className="bg-accent-blue/20 dark:bg-accent-blue/10 p-3 rounded-xl mr-4 text-accent-blue">
-                                    <FontAwesomeIcon icon={faHandHoldingDollar} size="lg" />
-                                </div>
-                                <h4 className="text-xl font-bold text-nature-800 dark:text-nature-100">{t('salesCredit')}</h4>
-                            </div>
-                            <GlassButton
-                                className="bg-accent-blue text-white hover:bg-blue-500 shadow-glow text-sm px-4"
-                                onClick={() => { setEditItem(null); setShowCreditModal(true); }}
-                            >
-                                <FontAwesomeIcon icon={faPlus} className="mr-2"/> {t('addCredit')}
-                            </GlassButton>
-                        </div>
-                        <div className="flex-1 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
-                            <table className="w-full text-left border-collapse">
-                                <thead className="sticky top-0 bg-white/90 dark:bg-nature-800/90 backdrop-blur-md z-10">
-                                    <tr className="text-nature-500 dark:text-nature-400 border-b border-nature-200 dark:border-nature-700/50">
-                                        <th className="py-3 px-2 font-medium">{t('S.No')}</th>
-                                        <th className="py-3 px-2 font-medium">{t('customer.name')}</th>
-                                        <th className="py-3 px-2 font-medium">{t('amount')}</th>
-                                        <th className="py-3 px-2 font-medium text-right">{t('action')}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {creditEntries.length > 0 ? (
-                                        creditEntries.map((row, index) => (
-                                            <tr key={row.credit_id} className="border-b border-nature-100 dark:border-nature-700/30 hover:bg-nature-50/50 dark:hover:bg-nature-800/50 transition-colors">
-                                                <td className="py-3 px-2 text-nature-600 dark:text-nature-300">{index + 1}</td>
-                                                <td className="py-3 px-2 text-nature-800 dark:text-nature-100">{row.customer_supplier_name}</td>
-                                                <td className="py-3 px-2 font-medium text-nature-800 dark:text-nature-100">₹ {row.credit_amount}</td>
-                                                <td className="py-3 px-2 text-right">
-                                                    <div className="flex justify-end gap-2">
-                                                        <button className="p-2 text-nature-500 hover:text-nature-700 bg-nature-100 hover:bg-nature-200 dark:bg-nature-800 dark:hover:bg-nature-700 rounded-lg transition-colors" onClick={() => handleEdit('credit', row)}>
-                                                            <FontAwesomeIcon icon={faPen} />
-                                                        </button>
-                                                        <button className="p-2 text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/50 rounded-lg transition-colors" onClick={() => handleDelete('credit', row.credit_id)}>
-                                                            <FontAwesomeIcon icon={faTrash} />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr><td colSpan="4" className="py-8 text-center text-nature-500 dark:text-nature-400">{t('noEntriesFound')}</td></tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </GlassCard>
-                </div>
+  return (
+    <ERPLayout
+      pageTitle={t('debitCredit') || 'பற்று / வரவு'}
+      breadcrumbCurrent={t('debitCredit') || 'பற்று / வரவு'}
+    >
+      <div className="erp-debit-credit-page">
+        {/* Top Header & Date Navigation Bar */}
+        <div className="erp-dc-header-bar">
+          <div className="erp-dc-header-left">
+            <h1 className="erp-dc-title">
+              {t('debitCreditTitle') || t('debitCredit') || 'பற்று / வரவு மேலாண்மை'}
+            </h1>
+            <div className="erp-dc-subtitle">
+              {t('debitCreditLedgerSubtitle') || 'கொள்முதல் பற்று மற்றும் விற்பனை வரவு கணக்கு மேலாண்மை'}
             </div>
+          </div>
 
-            <DebitCreditModal
-                type="debit"
-                show={showDebitModal}
-                onHide={closeModal}
-                onSubmit={loadData}
-                date={date}
-                editData={editItem}
+          {/* Date Picker & Quick Actions Bar */}
+          <div className="erp-dc-date-bar">
+            <button
+              type="button"
+              className="erp-date-nav-btn"
+              onClick={handlePrevDay}
+              title={t('prevDay') || 'முந்தைய நாள்'}
+              aria-label="Previous day"
+              id="btn-date-prev"
+            >
+              <FontAwesomeIcon icon={faChevronLeft} />
+            </button>
+
+            <input
+              type="date"
+              className="erp-dc-date-input"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              id="input-erp-date"
+              aria-label="Select Date"
             />
 
-            <DebitCreditModal
-                type="credit"
-                show={showCreditModal}
-                onHide={closeModal}
-                onSubmit={loadData}
-                date={date}
-                editData={editItem}
-            />
+            <button
+              type="button"
+              className="erp-date-nav-btn"
+              onClick={handleNextDay}
+              title={t('nextDay') || 'அடுத்த நாள்'}
+              aria-label="Next day"
+              id="btn-date-next"
+            >
+              <FontAwesomeIcon icon={faChevronRight} />
+            </button>
 
-            <DebitCreditUpdateModal
-                show={showUpdateModal}
-                onHide={() => setShowUpdateModal(false)}
-                type={updateType}
-                editData={editItem}
-                onSuccess={loadData}
-            />
+            <button
+              type="button"
+              className="erp-today-btn"
+              onClick={handleToday}
+              id="btn-date-today"
+            >
+              {t('today') || 'இன்று'}
+            </button>
 
+            {tamilDateInfo && (
+              <div className="erp-tamil-chip" title="தமிழ் தேதி">
+                <FontAwesomeIcon icon={faCalendarAlt} />
+                <span>{tamilDateInfo}</span>
+              </div>
+            )}
+
+            <button
+              type="button"
+              className="erp-refresh-btn"
+              onClick={() => loadData(false)}
+              title={t('refresh') || 'புதுப்பிக்க'}
+              aria-label="Refresh data"
+              id="btn-refresh-dc"
+            >
+              <FontAwesomeIcon icon={faRotateRight} spin={refreshing} />
+            </button>
+          </div>
         </div>
-    );
+
+        {/* 3 KPI Summary Cards */}
+        <div className="erp-dc-kpi-grid">
+          {/* Total Debit Card */}
+          <div className="erp-dc-kpi-card debit-card" id="kpi-card-debit">
+            <div className="kpi-top-row">
+              <span className="kpi-label-text">{t('purchaseDebit')}</span>
+              <div className="kpi-icon-pill debit">
+                <FontAwesomeIcon icon={faArrowUp} />
+              </div>
+            </div>
+            <div className="kpi-amount-val debit">
+              {formatCurrency(totalDebit)}
+            </div>
+            <div className="kpi-meta-row">
+              <span>{t('entriesCount') || 'பதிவுகள்'}: <strong>{debitEntries.length}</strong></span>
+              <span className="kpi-status-tag deficit">
+                <FontAwesomeIcon icon={faFileInvoiceDollar} className="me-1" />
+                {t('outflow') || 'வெளிச்செல்லல்'}
+              </span>
+            </div>
+          </div>
+
+          {/* Total Credit Card */}
+          <div className="erp-dc-kpi-card credit-card" id="kpi-card-credit">
+            <div className="kpi-top-row">
+              <span className="kpi-label-text">{t('salesCredit')}</span>
+              <div className="kpi-icon-pill credit">
+                <FontAwesomeIcon icon={faArrowDown} />
+              </div>
+            </div>
+            <div className="kpi-amount-val credit">
+              {formatCurrency(totalCredit)}
+            </div>
+            <div className="kpi-meta-row">
+              <span>{t('entriesCount') || 'பதிவுகள்'}: <strong>{creditEntries.length}</strong></span>
+              <span className="kpi-status-tag surplus">
+                <FontAwesomeIcon icon={faCoins} className="me-1" />
+                {t('inflow') || 'உள்வரவு'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Segmented Switcher (Visible on mobile only < 768px) */}
+        <div className="erp-mobile-tab-bar d-md-none">
+          <button
+            type="button"
+            className={`mobile-segment-btn ${activeMobileTab === 'debit' ? 'active debit' : ''}`}
+            onClick={() => setActiveMobileTab('debit')}
+            id="tab-mobile-debit"
+          >
+            <FontAwesomeIcon icon={faArrowUp} />
+            <span>{t('purchaseDebit')}</span>
+            <span className="segment-badge debit">{debitEntries.length}</span>
+          </button>
+          <button
+            type="button"
+            className={`mobile-segment-btn ${activeMobileTab === 'credit' ? 'active credit' : ''}`}
+            onClick={() => setActiveMobileTab('credit')}
+            id="tab-mobile-credit"
+          >
+            <FontAwesomeIcon icon={faArrowDown} />
+            <span>{t('salesCredit')}</span>
+            <span className="segment-badge credit">{creditEntries.length}</span>
+          </button>
+        </div>
+
+        {/* Desktop Dual-Column View (Visible >= 768px) */}
+        <div className="erp-dc-dual-grid d-none d-md-grid">
+          {/* Purchase Debit Panel */}
+          <PurchaseDebitPanel
+            entries={debitEntries}
+            loading={loading}
+            onAdd={() => setShowDebitModal(true)}
+            onEdit={(row) => handleEdit('debit', row)}
+            onDelete={(id) => handleDelete('debit', id)}
+          />
+
+          {/* Sales Credit Panel */}
+          <SalesCreditPanel
+            entries={creditEntries}
+            loading={loading}
+            onAdd={() => setShowCreditModal(true)}
+            onEdit={(row) => handleEdit('credit', row)}
+            onDelete={(id) => handleDelete('credit', id)}
+          />
+        </div>
+
+        {/* Mobile Tabbed View (Visible < 768px) */}
+        <div className="d-md-none">
+          {activeMobileTab === 'debit' ? (
+            <PurchaseDebitPanel
+              entries={debitEntries}
+              loading={loading}
+              onAdd={() => setShowDebitModal(true)}
+              onEdit={(row) => handleEdit('debit', row)}
+              onDelete={(id) => handleDelete('debit', id)}
+            />
+          ) : (
+            <SalesCreditPanel
+              entries={creditEntries}
+              loading={loading}
+              onAdd={() => setShowCreditModal(true)}
+              onEdit={(row) => handleEdit('credit', row)}
+              onDelete={(id) => handleDelete('credit', id)}
+            />
+          )}
+        </div>
+
+        {/* Add Debit Modal */}
+        <DebitCreditEntryModal
+          type="debit"
+          show={showDebitModal}
+          onHide={() => setShowDebitModal(false)}
+          onSubmit={() => loadData(true)}
+          date={date}
+          tamilDateInfo={tamilDateInfo}
+        />
+
+        {/* Add Credit Modal */}
+        <DebitCreditEntryModal
+          type="credit"
+          show={showCreditModal}
+          onHide={() => setShowCreditModal(false)}
+          onSubmit={() => loadData(true)}
+          date={date}
+          tamilDateInfo={tamilDateInfo}
+        />
+
+        {/* Update Amount Modal */}
+        <DebitCreditAmountModal
+          show={showUpdateModal}
+          onHide={() => setShowUpdateModal(false)}
+          type={updateType}
+          editData={editItem}
+          onSuccess={() => loadData(true)}
+        />
+      </div>
+    </ERPLayout>
+  );
 };
 
 export default DebitCreditPage;

@@ -1,188 +1,282 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getOrgSettings, updateOrgSettings, changePassword } from '../api/settingsAPI';
-import { getWhatsAppStatus, connectWhatsApp, disconnectWhatsApp } from '../api/whatsappAPI';
 import { useAuth } from '../context/AuthContext';
-import GlassCard from '../components/ui/GlassCard';
-import GlassButton from '../components/ui/GlassButton';
+import ERPLayout from '../components/layout/ERPLayout';
+import SettingsNav from '../components/settings/SettingsNav';
+import BusinessSettings from '../components/settings/BusinessSettings';
+import AppearanceSettings from '../components/settings/AppearanceSettings';
+import WhatsAppSettings from '../components/settings/WhatsAppSettings';
+import SecuritySettings from '../components/settings/SecuritySettings';
+import StaffSettings from '../components/settings/StaffSettings';
+import {
+  getOrgSettings,
+  updateOrgSettings,
+  changePassword,
+  getStaff,
+  createStaff,
+  deleteStaff
+} from '../api/settingsAPI';
+import {
+  getWhatsAppStatus,
+  connectWhatsApp,
+  disconnectWhatsApp
+} from '../api/whatsappAPI';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faKey, faCommentDots, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faCheckCircle, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
+import './SettingsPage.css';
 
 const SettingsPage = () => {
-    const { t } = useTranslation();
-    const { user } = useAuth(); // Assuming user object has { role: 'admin' }
-    const isAdmin = user?.role === 'admin';
+  const { t } = useTranslation();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
 
-    const [orgData, setOrgData] = useState({ name: '', logo_url: '', address: '' });
-    const [pwdData, setPwdData] = useState({ currentPassword: '', newPassword: '' });
-    const [waStatus, setWaStatus] = useState(null);
-    const [qrCode, setQrCode] = useState(null);
-    const [loadingWa, setLoadingWa] = useState(false);
+  const [activeTab, setActiveTab] = useState('business');
+  const [orgData, setOrgData] = useState({ name: '', address: '', logo_url: '' });
+  const [savingOrg, setSavingOrg] = useState(false);
+  const [savingPwd, setSavingPwd] = useState(false);
+  const [waStatus, setWaStatus] = useState(null);
+  const [qrCode, setQrCode] = useState(null);
+  const [loadingWa, setLoadingWa] = useState(false);
+  const [staffList, setStaffList] = useState([]);
+  const [creatingStaff, setCreatingStaff] = useState(false);
+  const [toast, setToast] = useState(null);
 
-    useEffect(() => {
-        if (isAdmin) {
-            getOrgSettings().then(setOrgData).catch(console.error);
-        }
-        
-        // Fetch WA status on load
-        fetchWaStatus();
-    }, [isAdmin]);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem('erp_theme') === 'dark';
+  });
 
-    const fetchWaStatus = async () => {
-        try {
-            const status = await getWhatsAppStatus();
-            setWaStatus(status.instance?.state);
-        } catch (error) {
-            console.error(error);
-        }
-    };
+  const showToast = (message, isError = false) => {
+    setToast({ message, isError });
+    setTimeout(() => {
+      setToast(null);
+    }, 3500);
+  };
 
-    const handleWaConnect = async () => {
-        setLoadingWa(true);
-        try {
-            const res = await connectWhatsApp();
-            if (res.base64) {
-                setQrCode(res.base64);
-                // Start polling status since user needs to scan
-                const interval = setInterval(async () => {
-                    const st = await getWhatsAppStatus();
-                    if (st.instance?.state === 'open') {
-                        setWaStatus('open');
-                        setQrCode(null);
-                        clearInterval(interval);
-                    }
-                }, 3000);
-            }
-        } catch (error) {
-            alert('Failed to connect WhatsApp');
-        } finally {
-            setLoadingWa(false);
-        }
-    };
+  const toggleTheme = () => {
+    const next = !isDarkMode;
+    setIsDarkMode(next);
+    localStorage.setItem('erp_theme', next ? 'dark' : 'light');
+    if (next) {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+  };
 
-    const handleWaDisconnect = async () => {
-        if (!window.confirm("Are you sure you want to disconnect WhatsApp?")) return;
-        setLoadingWa(true);
-        try {
-            await disconnectWhatsApp();
-            setWaStatus('close');
-        } catch (error) {
-            alert('Failed to disconnect WhatsApp');
-        } finally {
-            setLoadingWa(false);
-        }
-    };
+  // Load Organization settings and WhatsApp status
+  useEffect(() => {
+    getOrgSettings()
+      .then((data) => {
+        if (data) setOrgData(data);
+      })
+      .catch(console.error);
 
-    const handleOrgUpdate = async (e) => {
-        e.preventDefault();
-        try {
-            await updateOrgSettings(orgData);
-            alert(t('settings_updated'));
-        } catch (error) { alert('Failed to update'); }
-    };
+    fetchWaStatus();
 
-    const handlePwdChange = async (e) => {
-        e.preventDefault();
-        try {            
-            const response = await changePassword(pwdData);
-            alert(t('password_changed'));
-            setPwdData({ currentPassword: '', newPassword: '' });
-        } catch (error) { alert(error.response?.data?.error || 'Failed to change password'); }
-    };
+    if (isAdmin) {
+      loadStaff();
+    }
+  }, [isAdmin]);
 
-    return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
-            <h2 className="text-2xl font-bold text-nature-800 dark:text-nature-100 mb-8">{t('settings')}</h2>
+  const fetchWaStatus = async () => {
+    try {
+      const status = await getWhatsAppStatus();
+      setWaStatus(status.instance?.state || 'close');
+    } catch (error) {
+      setWaStatus('close');
+    }
+  };
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* ALL USERS: Change Password */}
-                <div className="flex flex-col">
-                    <GlassCard className="p-0 h-full flex flex-col overflow-hidden">
-                        <div className="bg-nature-200/50 dark:bg-nature-800/50 px-6 py-4 border-b border-nature-200 dark:border-nature-700/50 flex items-center">
-                            <FontAwesomeIcon icon={faKey} className="text-nature-600 dark:text-nature-300 mr-3" />
-                            <h3 className="text-lg font-bold text-nature-800 dark:text-nature-100">{t('update_password')}</h3>
-                        </div>
-                        <div className="p-6 flex-1">
-                            <form onSubmit={handlePwdChange} className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-nature-700 dark:text-nature-300 mb-1">{t('current_password')}</label>
-                                    <input 
-                                        type="password" 
-                                        className="w-full px-4 py-2 bg-white/60 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50 rounded-xl focus:ring-2 focus:ring-nature-400 outline-none text-nature-800 dark:text-nature-100" 
-                                        required
-                                        value={pwdData.currentPassword}
-                                        onChange={e => setPwdData({ ...pwdData, currentPassword: e.target.value })} 
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-nature-700 dark:text-nature-300 mb-1">{t('new_password')}</label>
-                                    <input 
-                                        type="password" 
-                                        className="w-full px-4 py-2 bg-white/60 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50 rounded-xl focus:ring-2 focus:ring-nature-400 outline-none text-nature-800 dark:text-nature-100" 
-                                        required
-                                        value={pwdData.newPassword}
-                                        onChange={e => setPwdData({ ...pwdData, newPassword: e.target.value })} 
-                                    />
-                                </div>
-                                <div className="pt-2">
-                                    <GlassButton type="submit" variant="primary" className="w-full justify-center">
-                                        {t('update_password')}
-                                    </GlassButton>
-                                </div>
-                            </form>
-                        </div>
-                    </GlassCard>
-                </div>
+  const loadStaff = async () => {
+    try {
+      const data = await getStaff();
+      if (Array.isArray(data)) setStaffList(data);
+    } catch (error) {
+      console.error('Error loading staff:', error);
+    }
+  };
 
-                {/* WhatsApp Connection */}
-                <div className="flex flex-col">
-                    <GlassCard className="p-0 h-full flex flex-col overflow-hidden">
-                        <div className="bg-green-100/50 dark:bg-green-900/30 px-6 py-4 border-b border-green-200/50 dark:border-green-800/50 flex items-center">
-                            <FontAwesomeIcon icon={faCommentDots} className="text-green-600 dark:text-green-400 mr-3" />
-                            <h3 className="text-lg font-bold text-green-800 dark:text-green-100">WhatsApp Integration</h3>
-                        </div>
-                        <div className="p-6 flex-1 flex flex-col items-center justify-center text-center">
-                            {waStatus === 'open' ? (
-                                <div className="w-full">
-                                    <div className="w-16 h-16 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-green-200 dark:border-green-700">
-                                        <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                                    </div>
-                                    <h4 className="text-xl font-semibold text-green-600 dark:text-green-400 mb-6">WhatsApp is Connected</h4>
-                                    <GlassButton onClick={handleWaDisconnect} disabled={loadingWa} variant="danger" className="w-full justify-center">
-                                        {loadingWa ? (
-                                            <><FontAwesomeIcon icon={faSpinner} spin className="mr-2" /> Disconnecting...</>
-                                        ) : 'Disconnect'}
-                                    </GlassButton>
-                                </div>
-                            ) : (
-                                <div className="w-full">
-                                    <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-yellow-200 dark:border-yellow-700">
-                                        <svg className="w-8 h-8 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                                    </div>
-                                    <h4 className="text-xl font-semibold text-accent-gold dark:text-yellow-400 mb-6">WhatsApp is Not Connected</h4>
-                                    
-                                    {!qrCode ? (
-                                        <GlassButton onClick={handleWaConnect} disabled={loadingWa} className="w-full justify-center bg-[#25D366] text-white hover:bg-[#128C7E]">
-                                            {loadingWa ? (
-                                                <><FontAwesomeIcon icon={faSpinner} spin className="mr-2" /> Connecting...</>
-                                            ) : (
-                                                <><FontAwesomeIcon icon={faCommentDots} className="mr-2" /> Connect WhatsApp</>
-                                            )}
-                                        </GlassButton>
-                                    ) : (
-                                        <div className="bg-white p-4 rounded-xl shadow-inner border border-nature-200">
-                                            <p className="text-nature-600 text-sm mb-4 font-medium">Scan this QR Code with your WhatsApp app.</p>
-                                            <img src={qrCode} alt="WhatsApp QR Code" className="w-full max-w-[250px] mx-auto rounded-lg" />
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </GlassCard>
-                </div>
-            </div>
+  // 1. Business Profile Update
+  const handleSaveOrg = async (formData) => {
+    setSavingOrg(true);
+    try {
+      await updateOrgSettings(formData);
+      setOrgData(formData);
+      showToast(t('settings_saved_success') || 'அமைப்புகள் வெற்றிகரமாக சேமிக்கப்பட்டது');
+    } catch (error) {
+      showToast(t('settings_save_failed') || 'அமைப்புகளைச் சேமிக்க முடியவில்லை', true);
+    } finally {
+      setSavingOrg(false);
+    }
+  };
+
+  // 2. WhatsApp Connect / Disconnect
+  const handleConnectWa = async () => {
+    setLoadingWa(true);
+    try {
+      const res = await connectWhatsApp();
+      if (res && res.base64) {
+        setQrCode(res.base64);
+        const interval = setInterval(async () => {
+          const st = await getWhatsAppStatus();
+          if (st.instance?.state === 'open') {
+            setWaStatus('open');
+            setQrCode(null);
+            clearInterval(interval);
+            showToast(t('settings_wa_status_connected') || 'வாட்ஸ்அப் இணைக்கப்பட்டுள்ளது');
+          }
+        }, 3000);
+      }
+    } catch (error) {
+      showToast('வாட்ஸ்அப் இணைக்க முடியவில்லை', true);
+    } finally {
+      setLoadingWa(false);
+    }
+  };
+
+  const handleDisconnectWa = async () => {
+    const confirmMsg = t('settings_wa_disconnect_confirm') || 'நிச்சயமாக வாட்ஸ்அப் இணைப்பைத் துண்டிக்க விரும்புகிறீர்களா?';
+    if (!window.confirm(confirmMsg)) return;
+
+    setLoadingWa(true);
+    try {
+      await disconnectWhatsApp();
+      setWaStatus('close');
+      setQrCode(null);
+      showToast('வாட்ஸ்அப் இணைப்பு துண்டிக்கப்பட்டது');
+    } catch (error) {
+      showToast('இணைப்பைத் துண்டிக்க முடியவில்லை', true);
+    } finally {
+      setLoadingWa(false);
+    }
+  };
+
+  // 3. Password Update
+  const handleSavePassword = async (pwdData, onSuccess) => {
+    setSavingPwd(true);
+    try {
+      await changePassword(pwdData);
+      showToast(t('settings_pwd_changed_success') || 'கடவுச்சொல் வெற்றிகரமாக மாற்றப்பட்டது');
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      const msg = error.response?.data?.error || 'கடவுச்சொல்லை மாற்ற முடியவில்லை';
+      showToast(msg, true);
+    } finally {
+      setSavingPwd(false);
+    }
+  };
+
+  // 4. Staff Management
+  const handleCreateStaff = async (staffData, onSuccess) => {
+    setCreatingStaff(true);
+    try {
+      await createStaff(staffData);
+      showToast(t('settings_staff_created') || 'பணியாளர் வெற்றிகரமாக சேர்க்கப்பட்டார்');
+      if (onSuccess) onSuccess();
+      loadStaff();
+    } catch (error) {
+      showToast('பணியாளரைச் சேர்க்க முடியவில்லை', true);
+    } finally {
+      setCreatingStaff(false);
+    }
+  };
+
+  const handleDeleteStaff = async (id) => {
+    const confirmMsg = t('settings_delete_staff_confirm') || 'இந்த பணியாளரை நிச்சயமாக நீக்க விரும்புகிறீர்களா?';
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      await deleteStaff(id);
+      showToast(t('settings_staff_deleted') || 'பணியாளர் நீக்கப்பட்டார்');
+      loadStaff();
+    } catch (error) {
+      showToast('பணியாளரை நீக்க முடியவில்லை', true);
+    }
+  };
+
+  return (
+    <ERPLayout>
+      {/* Lightweight Toast Alert */}
+      {toast && (
+        <div className="settings-toast-container">
+          <div className={`settings-toast ${toast.isError ? 'error' : ''}`}>
+            <FontAwesomeIcon
+              icon={toast.isError ? faExclamationCircle : faCheckCircle}
+              className={`settings-toast-icon ${toast.isError ? 'text-danger' : ''}`}
+            />
+            <span>{toast.message}</span>
+          </div>
         </div>
-    );
+      )}
+
+      <div className="erp-settings-container">
+        {/* Page Header */}
+        <div className="settings-page-header">
+          <h1 className="settings-title">{t('settings_title') || 'அமைப்புகள் மேலாண்மை'}</h1>
+          <p className="settings-subtitle">
+            {t('settings_subtitle') || 'வணிக விவரங்கள், மொழி, வாட்ஸ்அப் மற்றும் பயனர் விருப்பத்தேர்வுகள்'}
+          </p>
+        </div>
+
+        {/* Two-Column Responsive Settings Layout */}
+        <div className="row g-4">
+          {/* Left Column: Navigation Category Menu */}
+          <div className="col-12 col-lg-3">
+            <SettingsNav
+              activeTab={activeTab}
+              onSelectTab={setActiveTab}
+              isAdmin={isAdmin}
+            />
+          </div>
+
+          {/* Right Column: Selected Category Content */}
+          <div className="col-12 col-lg-9">
+            {activeTab === 'business' && (
+              <BusinessSettings
+                orgData={orgData}
+                onSave={handleSaveOrg}
+                saving={savingOrg}
+              />
+            )}
+
+            {activeTab === 'appearance' && (
+              <AppearanceSettings
+                isDarkMode={isDarkMode}
+                onToggleTheme={toggleTheme}
+                onShowToast={showToast}
+              />
+            )}
+
+            {activeTab === 'whatsapp' && (
+              <WhatsAppSettings
+                waStatus={waStatus}
+                qrCode={qrCode}
+                loadingWa={loadingWa}
+                onConnect={handleConnectWa}
+                onDisconnect={handleDisconnectWa}
+              />
+            )}
+
+            {activeTab === 'security' && (
+              <SecuritySettings
+                onSavePassword={handleSavePassword}
+                saving={savingPwd}
+              />
+            )}
+
+            {activeTab === 'staff' && isAdmin && (
+              <StaffSettings
+                staffList={staffList}
+                onCreateStaff={handleCreateStaff}
+                onDeleteStaff={handleDeleteStaff}
+                creating={creatingStaff}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+    </ERPLayout>
+  );
 };
 
 export default SettingsPage;

@@ -1,7 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import ProtectedRoute from './components/ProtectedRoute';
 import HomePage from './pages/HomePage';
 import CustomerPage from './pages/CustomerPage';
 import ProductPage from './pages/ProductPage';
@@ -23,11 +22,22 @@ import '@fortawesome/fontawesome-svg-core/styles.css';
 function AppContent() {
   const location = useLocation();
   const isPrint = location.pathname === '/print-report';
+  const isAuthPage = location.pathname === '/login';
+  const isERPPage = location.pathname === '/' ||
+                    location.pathname === '/customers' || 
+                    location.pathname === '/suppliers' || 
+                    location.pathname === '/products' || 
+                    location.pathname === '/stocks' ||
+                    location.pathname === '/entries' ||
+                    location.pathname === '/debit-credit' ||
+                    location.pathname === '/report' ||
+                    location.pathname === '/settings' ||
+                    location.pathname === '/users';
 
   return (
     <>
-      {!isPrint && <Header />}
-      {!isPrint && <Navbar />}
+      {!isPrint && !isAuthPage && <Header />}
+      {!isPrint && !isERPPage && !isAuthPage && <Navbar />}
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/print-report" element={<ReportPrintView />} />
@@ -42,7 +52,7 @@ function AppContent() {
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/users" element={<UserManagementPage />} />
       </Routes>
-      {!isPrint && <Footer />}
+      {!isPrint && !isERPPage && !isAuthPage && <Footer />}
     </>
   );
 }

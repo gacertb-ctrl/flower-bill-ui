@@ -1,334 +1,276 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getReportSummary, getTamilMonths, updateSupplierOD } from '../api/reportAPI.jsx';
-import { getWhatsAppStatus, sendReportWhatsApp } from '../api/whatsappAPI';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCloudDownload, faSync, faFileLines } from '@fortawesome/free-solid-svg-icons';
+import { faSync } from '@fortawesome/free-solid-svg-icons';
 import { faWhatsapp } from '@fortawesome/free-brands-svg-icons';
-import GlassCard from '../components/ui/GlassCard';
-import GlassButton from '../components/ui/GlassButton';
+import ERPLayout from '../components/layout/ERPLayout';
+import ReportControls from '../components/reports/ReportControls';
+import ReportFinancialKPIs from '../components/reports/ReportFinancialKPIs';
+import ReportLedgerTable from '../components/reports/ReportLedgerTable';
+import { getReportSummary, getTamilMonths, updateSupplierOD } from '../api/reportAPI.jsx';
+import { fetchTamilDate } from '../api/entryAPI';
+import { getWhatsAppStatus, sendReportWhatsApp } from '../api/whatsappAPI';
+import './ReportPage.css';
 
 const ReportPage = () => {
-    const { t } = useTranslation();
-    const [period, setPeriod] = useState('');
-    const [reportType, setReportType] = useState('');
-    const [tamilMonths, setTamilMonths] = useState([]);
-    const [selectedMonth, setSelectedMonth] = useState('');
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-    const [tableData, setTableData] = useState([]);
-    const [isUpdatingOD, setIsUpdatingOD] = useState(false);
-    const [loadingWa, setLoadingWa] = useState(false);
+  const { t } = useTranslation();
 
-    useEffect(() => {
-        const fetchMonths = async () => {
-            try {
-                const data = await getTamilMonths();
-                setTamilMonths(data);
-            } catch (e) {
-                console.error("Failed to load months", e);
-            }
-        };
-        fetchMonths();
-    }, []);
+  // URL query params or realistic initial defaults
+  const queryParams = new URLSearchParams(window.location.search);
+  const initialPeriod = queryParams.get('period') || 'date';
+  const initialType = queryParams.get('type') || 'purchase';
+  const initialDate = queryParams.get('date') || '2024-10-30';
+  const initialMonth = queryParams.get('month') || 'Aippasi';
+  const initialYear = parseInt(queryParams.get('year'), 10) || 2024;
 
-    const handleUpdateOD = async () => {
-        if (!selectedMonth || !selectedYear) return;
+  const [period, setPeriod] = useState(initialPeriod);
+  const [reportType, setReportType] = useState(initialType);
+  const [tamilMonths, setTamilMonths] = useState([]);
+  const [selectedMonth, setSelectedMonth] = useState(initialMonth);
+  const [selectedYear, setSelectedYear] = useState(initialYear);
+  const [selectedDate, setSelectedDate] = useState(initialDate);
+  const [tamilDateInfo, setTamilDateInfo] = useState('');
 
-        if (window.confirm(t('Are you sure?'))) {
-            setIsUpdatingOD(true);
-            try {
-                await updateSupplierOD({ month: selectedMonth, year: selectedYear });
-                alert(t('Success'));
-            } catch (e) {
-                console.error(e);
-            } finally {
-                setIsUpdatingOD(false);
-            }
-        }
+  const [tableData, setTableData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [isUpdatingOD, setIsUpdatingOD] = useState(false);
+  const [loadingWa, setLoadingWa] = useState(false);
+
+  // Load Tamil Months list on mount
+  useEffect(() => {
+    const fetchMonths = async () => {
+      try {
+        const data = await getTamilMonths();
+        setTamilMonths(data || []);
+      } catch (e) {
+        console.error("Failed to load tamil months", e);
+      }
     };
+    fetchMonths();
+  }, []);
 
-    const loadReportTable = async () => {
-        if (!period || !reportType) return;
-
-        const params = {
-            period_type: period,
-            report_type: reportType,
-            month: selectedMonth,
-            year: selectedYear,
-            date: selectedDate
-        };
-
+  // Fetch Tamil date name dynamically whenever selectedDate changes
+  useEffect(() => {
+    if (period === 'date' && selectedDate) {
+      const loadTamilDate = async () => {
         try {
-            const data = await getReportSummary(params);
-            setTableData(data);
-        } catch (e) {
-            console.error("Failed to load table", e);
+          const res = await fetchTamilDate(selectedDate);
+          if (res) {
+            const m = res.tamil_month_name_ta || res.tamil_month || '';
+            const d = res.tamil_date || '';
+            if (m && d) {
+              setTamilDateInfo(`${m} ${d}`);
+            } else {
+              setTamilDateInfo('');
+            }
+          }
+        } catch (err) {
+          console.error("Error fetching tamil date:", err);
+          setTamilDateInfo('');
         }
+      };
+      loadTamilDate();
+    } else {
+      setTamilDateInfo('');
+    }
+  }, [period, selectedDate]);
+
+  // Load Report Table Data
+  const loadReportTable = useCallback(async () => {
+    if (!period || !reportType) return;
+    if (period === 'month' && (!selectedMonth || !selectedYear)) return;
+    if (period === 'date' && !selectedDate) return;
+
+    const params = {
+      period_type: period,
+      report_type: reportType,
+      month: selectedMonth,
+      year: selectedYear,
+      date: selectedDate
     };
 
-    useEffect(() => {
-        if (period === 'month' && (!selectedMonth || !selectedYear)) return;
-        if (period === 'date' && !selectedDate) return;
+    setLoading(true);
+    try {
+      const data = await getReportSummary(params);
+      setTableData(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.error("Failed to load report summary", e);
+      setTableData([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [period, reportType, selectedMonth, selectedYear, selectedDate]);
+
+  useEffect(() => {
+    loadReportTable();
+  }, [loadReportTable]);
+
+  // Update Monthly OD maintenance action
+  const handleUpdateOD = async () => {
+    if (!selectedMonth || !selectedYear) return;
+
+    const confirmMsg = t('reports_update_od_confirm') || 'மாதாந்திர நிலுவையை புதுப்பிக்க உறுதிப்படுத்துகிறீர்களா?';
+    if (window.confirm(confirmMsg)) {
+      setIsUpdatingOD(true);
+      try {
+        await updateSupplierOD({ month: selectedMonth, year: selectedYear });
+        alert(t('reports_update_od_success') || t('Success') || 'மாதாந்திர நிலுவை வெற்றிகரமாக புதுப்பிக்கப்பட்டது');
         loadReportTable();
-    }, [period, reportType, selectedMonth, selectedYear, selectedDate]);
+      } catch (e) {
+        console.error("Error updating monthly OD:", e);
+        alert(t('messages.failedToSaveEntry') || 'நிலுவை புதுப்பித்தல் தோல்வியடைந்தது');
+      } finally {
+        setIsUpdatingOD(false);
+      }
+    }
+  };
 
-    const handleDownload = (customerCode = '') => {
-        let url = `/print-report?period=${period}&type=${reportType}`;
-        if (period === 'month') url += `&month=${selectedMonth}&year=${selectedYear}`;
-        else url += `&date=${selectedDate}`;
+  // Open /print-report view in a new tab
+  const handleDownload = (customerCode = '') => {
+    let url = `/print-report?period=${period}&type=${reportType}`;
+    if (period === 'month') {
+      url += `&month=${selectedMonth}&year=${selectedYear}`;
+    } else {
+      url += `&date=${selectedDate}`;
+    }
 
-        if (customerCode) url += `&code=${customerCode}`;
+    if (customerCode) {
+      url += `&code=${encodeURIComponent(customerCode)}`;
+    }
 
-        window.open(url, '_blank');
-    };
+    window.open(url, '_blank');
+  };
 
-    const handleSendWhatsAppSingle = async (row) => {
-        try {
-            setLoadingWa(true);
-            const st = await getWhatsAppStatus();
-            if (st.instance?.state !== 'open') {
-                 alert(t('Please connect WhatsApp in Settings'));
-                 setLoadingWa(false);
-                 return;
-            }
+  // Send single WhatsApp report
+  const handleSendWhatsAppSingle = async (row) => {
+    try {
+      setLoadingWa(true);
+      const st = await getWhatsAppStatus();
+      if (st?.instance?.state !== 'open') {
+        alert(t('reports_whatsapp_not_connected') || 'Please connect WhatsApp in Settings');
+        setLoadingWa(false);
+        return;
+      }
 
-            const payload = {
-                period_type: period,
-                report_type: reportType,
-                code: row.customer_supplier_code,
-                number: row.customer_supplier_contact_no
-            };
-            
-            if (period === 'date') {
-                payload.date = selectedDate;
-            } else if (period === 'month') {
-                payload.month = selectedMonth;
-                payload.year = selectedYear;
-            }
-            
-            await sendReportWhatsApp(payload);
-            alert(`WhatsApp report sent successfully`);
-        } catch (error) {
-            console.error('Error sending whatsapp:', error);
-            alert('Failed to send WhatsApp report. Please check your connection in Settings.');
-        } finally {
-            setLoadingWa(false);
-        }
-    };
+      const payload = {
+        period_type: period,
+        report_type: reportType,
+        code: row.customer_supplier_code || row.code,
+        number: row.customer_supplier_contact_no || row.contact
+      };
 
-    return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
-            {/* Header Section */}
-            <div className="flex items-center mb-8">
-                <div className="w-12 h-12 bg-nature-100 dark:bg-nature-800 rounded-2xl flex items-center justify-center mr-4 shadow-sm border border-nature-200 dark:border-nature-700">
-                    <FontAwesomeIcon icon={faFileLines} className="text-2xl text-nature-600 dark:text-nature-300" />
-                </div>
-                <div>
-                    <h2 className="text-2xl font-bold text-nature-800 dark:text-nature-100">{t('Reports')}</h2>
-                    <p className="text-nature-500 dark:text-nature-400 text-sm mt-1">Generate and manage system reports</p>
-                </div>
-            </div>
+      if (period === 'date') {
+        payload.date = selectedDate;
+      } else if (period === 'month') {
+        payload.month = selectedMonth;
+        payload.year = selectedYear;
+      }
 
-            <GlassCard className="p-6 mb-8">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="md:col-span-1">
-                        <select 
-                            className="w-full px-4 py-2.5 bg-white/60 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50 rounded-xl focus:ring-2 focus:ring-nature-400 outline-none text-nature-800 dark:text-nature-100 shadow-sm" 
-                            value={period} 
-                            onChange={(e) => { setPeriod(e.target.value); setTableData([]); }}
-                        >
-                            <option value="" disabled>{t('reports.period')}</option>
-                            <option value="month">{t('reports.patta')}</option>
-                            <option value="date">{t('reports.sittai')}</option>
-                        </select>
-                    </div>
+      await sendReportWhatsApp(payload);
+      alert(t('reports_whatsapp_success') || 'WhatsApp report sent successfully');
+    } catch (error) {
+      console.error('Error sending whatsapp:', error);
+      alert(t('reports_whatsapp_failed') || 'Failed to send WhatsApp report. Please check your connection in Settings.');
+    } finally {
+      setLoadingWa(false);
+    }
+  };
 
-                    {period === 'month' && (
-                        <>
-                            <div className="md:col-span-1 animate-fade-in">
-                                <select 
-                                    className="w-full px-4 py-2.5 bg-white/60 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50 rounded-xl focus:ring-2 focus:ring-nature-400 outline-none text-nature-800 dark:text-nature-100 shadow-sm" 
-                                    value={reportType} 
-                                    onChange={(e) => setReportType(e.target.value)}
-                                >
-                                    <option value="">{t('reports.type')}</option>
-                                    <option value="purchase">{t('purchase')}</option>
-                                    <option value="sales">{t('sales')}</option>
-                                </select>
-                            </div>
-                            <div className="md:col-span-1 animate-fade-in">
-                                <select 
-                                    className="w-full px-4 py-2.5 bg-white/60 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50 rounded-xl focus:ring-2 focus:ring-nature-400 outline-none text-nature-800 dark:text-nature-100 shadow-sm" 
-                                    value={selectedMonth} 
-                                    onChange={(e) => setSelectedMonth(e.target.value)}
-                                >
-                                    <option value="">{t('reports.selectMonth')}</option>
-                                    {tamilMonths.map((m, i) => (
-                                        <option key={i} value={m.tamil_month_name_en}>{m.tamil_month_name_ta}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="md:col-span-1 animate-fade-in">
-                                <input 
-                                    type="number" 
-                                    className="w-full px-4 py-2.5 bg-white/60 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50 rounded-xl focus:ring-2 focus:ring-nature-400 outline-none text-nature-800 dark:text-nature-100 shadow-sm" 
-                                    value={selectedYear} 
-                                    onChange={(e) => setSelectedYear(e.target.value)} 
-                                />
-                            </div>
-                        </>
-                    )}
-
-                    {period === 'date' && (
-                        <>
-                            <div className="md:col-span-1 animate-fade-in">
-                                <select 
-                                    className="w-full px-4 py-2.5 bg-white/60 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50 rounded-xl focus:ring-2 focus:ring-nature-400 outline-none text-nature-800 dark:text-nature-100 shadow-sm" 
-                                    value={reportType} 
-                                    onChange={(e) => setReportType(e.target.value)}
-                                >
-                                    <option value="">{t('reports.type')}</option>
-                                    <option value="purchase">{t('purchase')}</option>
-                                    <option value="sales">{t('sales')}</option>
-                                </select>
-                            </div>
-                            <div className="md:col-span-2 animate-fade-in">
-                                <input 
-                                    type="date" 
-                                    className="w-full px-4 py-2.5 bg-white/60 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50 rounded-xl focus:ring-2 focus:ring-nature-400 outline-none text-nature-800 dark:text-nature-100 shadow-sm" 
-                                    value={selectedDate} 
-                                    onChange={(e) => setSelectedDate(e.target.value)} 
-                                />
-                            </div>
-                        </>
-                    )}
-                </div>
-            </GlassCard>
-
-            {tableData.length > 0 && (
-                <div className="mb-6 flex flex-wrap gap-4 justify-end">
-                    {period === 'month' && reportType === 'purchase' && (
-                        <GlassButton
-                            variant="secondary"
-                            className="bg-accent-gold/20 text-yellow-700 border border-accent-gold/50 hover:bg-accent-gold/30 dark:text-yellow-400"
-                            onClick={handleUpdateOD}
-                            disabled={isUpdatingOD}
-                        >
-                            {isUpdatingOD ? (
-                                <><FontAwesomeIcon icon={faSync} spin className="mr-2" /> {t('Updating...')}</>
-                            ) : (
-                                <><FontAwesomeIcon icon={faSync} className="mr-2" /> {t('Update Monthly OD')}</>
-                            )}
-                        </GlassButton>
-                    )}
-                    <GlassButton variant="primary" onClick={() => handleDownload()}>
-                        <FontAwesomeIcon icon={faCloudDownload} className="mr-2" /> {t('reports.downloadAll')}
-                    </GlassButton>
-                </div>
-            )}
-
-            {tableData.length > 0 && (
-                <GlassCard className="p-0 overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead className="bg-nature-100/50 dark:bg-nature-800/50 border-b border-nature-200 dark:border-nature-700">
-                                <tr className="text-nature-600 dark:text-nature-300">
-                                    <th className="py-4 px-6 font-semibold">{t('S.No')}</th>
-                                    <th className="py-4 px-6 font-semibold">{reportType === 'purchase' ? t('supplier.name') : t('customer.name')}</th>
-                                    <th className="py-4 px-6 font-semibold">
-                                        {reportType === 'purchase' ? t('reports.creditDebit') : t('reports.debitCredit')}
-                                    </th>
-                                    <th className="py-4 px-6 font-semibold text-right">{t('action')}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {tableData
-                                    .filter(row =>
-                                        parseFloat(row.credit_amount) > 0 ||
-                                        parseFloat(row.debit_amount) > 0
-                                    ).map((row, index) => {
-                                        let displayAmt = "";
-                                        if (reportType === 'purchase') {
-                                            displayAmt = `${row.credit_amount} / ${row.debit_amount}`;
-                                        } else {
-                                            displayAmt = `${row.debit_amount} / ${row.credit_amount}`;
-                                        }
-        
-                                        return (
-                                            <tr key={index} className="border-b border-nature-100 dark:border-nature-700/30 hover:bg-nature-50/50 dark:hover:bg-nature-800/50 transition-colors">
-                                                <td className="py-4 px-6 text-nature-600 dark:text-nature-400">{index + 1}</td>
-                                                <td className="py-4 px-6 font-medium text-nature-800 dark:text-nature-100">{row.customer_supplier_name}</td>
-                                                <td className="py-4 px-6 text-nature-800 dark:text-nature-100">{displayAmt}</td>
-                                                <td className="py-4 px-6 text-right">
-                                                    <div className="flex justify-end gap-2">
-                                                        <button 
-                                                            className="p-2 text-nature-600 hover:text-nature-800 bg-nature-100 hover:bg-nature-200 dark:bg-nature-800 dark:text-nature-300 dark:hover:bg-nature-700 rounded-lg transition-colors" 
-                                                            onClick={() => handleDownload(row.customer_supplier_code)} 
-                                                            title="Download/Print"
-                                                        >
-                                                            <FontAwesomeIcon icon={faCloudDownload} />
-                                                        </button>
-                                                        <button 
-                                                            className="p-2 text-white bg-[#25D366] hover:bg-[#128C7E] rounded-lg transition-colors shadow-sm" 
-                                                            onClick={() => handleSendWhatsAppSingle(row)} 
-                                                            title="Send WhatsApp" 
-                                                            disabled={loadingWa}
-                                                        >
-                                                            <FontAwesomeIcon icon={faWhatsapp} className="text-lg" />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        );                                    
-                                })}
-                            </tbody>
-                            <tfoot className="bg-nature-50 dark:bg-nature-800/30 border-t-2 border-nature-200 dark:border-nature-700">
-                                <tr className="font-bold text-nature-800 dark:text-nature-100">
-                                    <td colSpan="2" className="py-4 px-6 text-right">{t('reports.total')}:</td>
-                                    <td className="py-4 px-6">
-                                        {reportType === 'purchase' ? (
-                                            <>
-                                                {tableData.reduce((acc, curr) => acc + parseFloat(curr.credit_amount || 0), 0).toFixed(2)}
-                                                {" / "}
-                                                {tableData.reduce((acc, curr) => acc + parseFloat(curr.debit_amount || 0), 0).toFixed(2)}
-                                            </>
-                                        ) : (
-                                            <>
-                                                {tableData.reduce((acc, curr) => acc + parseFloat(curr.debit_amount || 0), 0).toFixed(2)}
-                                                {" / "}
-                                                {tableData.reduce((acc, curr) => acc + parseFloat(curr.credit_amount || 0), 0).toFixed(2)}
-                                            </>
-                                        )}
-                                    </td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </GlassCard>
-            )}
-
-            {/* Loaders */}
-            {(isUpdatingOD || loadingWa) && (
-                <div className="fixed inset-0 bg-nature-900/40 backdrop-blur-sm z-50 flex flex-col justify-center items-center">
-                    <GlassCard className="p-8 text-center min-w-[250px] shadow-2xl border border-white/40 flex flex-col items-center">
-                        <FontAwesomeIcon 
-                            icon={loadingWa ? faWhatsapp : faSync} 
-                            spin={!loadingWa} 
-                            className={`text-4xl mb-4 ${loadingWa ? 'text-[#25D366] animate-bounce' : 'text-nature-600 dark:text-nature-400'}`} 
-                        />
-                        <h5 className="text-xl font-bold text-nature-800 dark:text-nature-100 mb-2">
-                            {loadingWa ? 'WhatsApp' : t('Processing...')}
-                        </h5>
-                        <p className="text-nature-600 dark:text-nature-400 text-sm">
-                            {loadingWa ? t('Sending report, please wait...') : t('Calculating Monthly OD')}
-                        </p>
-                    </GlassCard>
-                </div>
-            )}
+  return (
+    <ERPLayout
+      pageTitle={t('reports_page_title') || t('reports.title') || 'அறிக்கைகள்'}
+      breadcrumbCurrent={t('reports.title') || 'அறிக்கைகள்'}
+    >
+      <div className="erp-reports-page">
+        {/* Page Header */}
+        <div className="erp-reports-header">
+          <h1 className="reports-header-title">
+            {t('reports_page_title') || t('reports.title') || 'அறிக்கைகள் மேலாண்மை'}
+          </h1>
+          <div className="reports-header-subtitle">
+            {t('reports_page_subtitle') || 'கொள்முதல் மற்றும் விற்பனை வணிக நிதி அறிக்கைகள்'}
+          </div>
         </div>
-    );
+
+        {/* 1. Report Controls Bar */}
+        <ReportControls
+          period={period}
+          setPeriod={(p) => {
+            setPeriod(p);
+            setTableData([]);
+          }}
+          reportType={reportType}
+          setReportType={(rt) => {
+            setReportType(rt);
+            setTableData([]);
+          }}
+          selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
+          selectedMonth={selectedMonth}
+          setSelectedMonth={setSelectedMonth}
+          selectedYear={selectedYear}
+          setSelectedYear={setSelectedYear}
+          tamilMonths={tamilMonths}
+          tamilDateInfo={tamilDateInfo}
+          onDownloadAll={() => handleDownload()}
+          onUpdateOD={handleUpdateOD}
+          isUpdatingOD={isUpdatingOD}
+          hasData={tableData.length > 0}
+        />
+
+        {/* 2. Financial Summary KPIs */}
+        <ReportFinancialKPIs
+          tableData={tableData}
+          reportType={reportType}
+          period={period}
+        />
+
+        {/* 3. Accounting Ledger Table */}
+        <ReportLedgerTable
+          tableData={tableData}
+          reportType={reportType}
+          period={period}
+          loading={loading}
+          loadingWa={loadingWa}
+          onDownloadSingle={handleDownload}
+          onSendWhatsApp={handleSendWhatsAppSingle}
+        />
+
+        {/* Processing Overlays */}
+        {isUpdatingOD && (
+          <div className="erp-processing-overlay" role="dialog" aria-modal="true">
+            <div className="processing-card">
+              <div className="processing-spinner-box amber">
+                <FontAwesomeIcon icon={faSync} spin />
+              </div>
+              <h3 className="processing-title">
+                {t('reports_updating_od') || 'நிலுவை புதுப்பிக்கப்படுகிறது...'}
+              </h3>
+              <p className="processing-subtitle">
+                {t('reports_calculating_od') || 'மாதாந்திர நிலுவை கணக்கிடப்படுகிறது'}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {loadingWa && (
+          <div className="erp-processing-overlay" role="dialog" aria-modal="true">
+            <div className="processing-card">
+              <div className="processing-spinner-box green">
+                <FontAwesomeIcon icon={faWhatsapp} />
+              </div>
+              <h3 className="processing-title">
+                {t('WhatsApp') || 'வாட்ஸ்அப்'}
+              </h3>
+              <p className="processing-subtitle">
+                {t('reports_whatsapp_sending') || 'வாட்ஸ்அப் அறிக்கை அனுப்பப்படுகிறது...'}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </ERPLayout>
+  );
 };
 
 export default ReportPage;

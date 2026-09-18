@@ -1,232 +1,497 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChartLine, faShoppingCart, faServer, faCircleCheck } from '@fortawesome/free-solid-svg-icons';
+import {
+  faMoneyBillWave,
+  faCartPlus,
+  faHandHoldingDollar,
+  faReceipt,
+  faTriangleExclamation,
+  faClockRotateLeft,
+  faCalendarAlt,
+  faRotateRight,
+  faBoxesStacked
+} from '@fortawesome/free-solid-svg-icons';
+import ERPLayout from '../components/layout/ERPLayout';
 import { fetchStocks } from '../api/stockAPI';
 import { getAllSalesEntries, getAllPurchaseEntries } from '../api/entryAPI';
-import GlassCard from '../components/ui/GlassCard';
+import { fetchCustomers } from '../api/customerAPI';
+import { useAuth } from '../context/AuthContext';
+import { formatLocalDate } from '../utils/dateUtils';
+import './HomePage.css';
 
 const HomePage = () => {
   const { t } = useTranslation();
-  const [loading, setLoading] = useState(true);
-  const [dashboardData, setDashboardData] = useState({
-    barData: [],
-    pieData: [],
-    totals: { sales: 0, purchase: 0 }
-  });
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
-  // Nature-inspired colors for charts
-  const CHART_COLORS = {
-    sales: '#5c995c',    // nature-500
-    purchase: '#e69966', // accent-orange
-    stock: '#7ab8e6',    // accent-blue
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(() => new Date());
+
+  // Data states
+  const [salesList, setSalesList] = useState([]);
+  const [purchaseList, setPurchaseList] = useState([]);
+  const [stocksList, setStocksList] = useState([]);
+  const [customerOutstanding, setCustomerOutstanding] = useState(0);
+
+  const loadDashboardData = async (dateObj, isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
+
+    try {
+      const dateString = formatLocalDate(dateObj);
+
+      // Fetch all core datasets in parallel
+      const [stocksData, salesData, purchaseData, customersData] = await Promise.all([
+        fetchStocks(dateObj).catch(() => []),
+        getAllSalesEntries(dateString).catch(() => []),
+        getAllPurchaseEntries(dateString).catch(() => []),
+        fetchCustomers().catch(() => [])
+      ]);
+
+      setStocksList(Array.isArray(stocksData) ? stocksData : []);
+      setSalesList(Array.isArray(salesData) ? salesData : []);
+      setPurchaseList(Array.isArray(purchaseData) ? purchaseData : []);
+
+      // Calculate Customer Outstanding
+      if (Array.isArray(customersData)) {
+        const totalCustOut = customersData.reduce((acc, c) => {
+          const debit = parseFloat(c.debit_amount || 0);
+          const credit = parseFloat(c.credit_amount || 0);
+          return acc + Math.max(0, debit - credit);
+        }, 0);
+        setCustomerOutstanding(totalCustOut);
+      }
+
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   };
 
   useEffect(() => {
-    const loadDashboardData = async () => {
-      try {
-        const today = new Date();
-        const dateString = today.toISOString().split('T')[0];
+    loadDashboardData(selectedDate);
+  }, [selectedDate]);
 
-        const [stocksData, salesData, purchaseData] = await Promise.all([
-          fetchStocks(today),
-          getAllSalesEntries(dateString),
-          getAllPurchaseEntries(dateString)
-        ]);
+  // Today Totals
+  const todaySalesAmt = useMemo(() => {
+    return salesList.reduce((acc, curr) => acc + Number(curr.totalAmount || curr.sales_total || curr.price * curr.quantity || 0), 0);
+  }, [salesList]);
 
-        const productMap = {};
+  const todayPurchaseAmt = useMemo(() => {
+    return purchaseList.reduce((acc, curr) => acc + Number(curr.totalAmount || curr.purchase_total || curr.price * curr.quantity || 0), 0);
+  }, [purchaseList]);
 
-        if (Array.isArray(stocksData)) {
-          stocksData.forEach(item => {
-            const name = item.productName || item.product_name || "Unknown";
-            if (!productMap[name]) productMap[name] = { name, stock: 0, sales: 0, purchase: 0 };
-            productMap[name].stock += Number(item.quantity || 0);
-          });
-        }
+  // Process Data for Bar Chart (Flower-wise: Stock vs Sales vs Purchase)
+  const barChartData = useMemo(() => {
+    const map = {};
 
-        if (Array.isArray(salesData)) {
-          salesData.forEach(entry => {
-            const name = entry.productName || entry.product_name;
-            if (name) {
-              if (!productMap[name]) productMap[name] = { name, stock: 0, sales: 0, purchase: 0 };
-              productMap[name].sales += Number(entry.quantity || 1);
-            }
-          });
-        }
+    // Stock items
+    stocksList.forEach((s) => {
+      const name = s.product_name || s.name || s.product_code || 'Other';
+      if (!map[name]) map[name] = { name, stock: 0, sales: 0, purchase: 0 };
+      const purchases = parseFloat(s.total_purchase_quality || 0);
+      const sales = parseFloat(s.total_sales_quality || 0);
+      map[name].stock += Math.max(0, purchases - sales);
+      map[name].purchase += purchases;
+      map[name].sales += sales;
+    });
 
-        if (Array.isArray(purchaseData)) {
-          purchaseData.forEach(entry => {
-            const name = entry.productName || entry.product_name;
-            if (name) {
-              if (!productMap[name]) productMap[name] = { name, stock: 0, sales: 0, purchase: 0 };
-              productMap[name].purchase += Number(entry.quantity || 1);
-            }
-          });
-        }
-
-        const barData = Object.values(productMap);
-
-        const totalSalesAmt = Array.isArray(salesData)
-          ? salesData.reduce((acc, curr) => acc + Number(curr.totalAmount || curr.sales_total || 0), 0)
-          : 0;
-
-        const totalPurchaseAmt = Array.isArray(purchaseData)
-          ? purchaseData.reduce((acc, curr) => acc + Number(curr.totalAmount || curr.purchase_total || 0), 0)
-          : 0;
-
-        const totalSales = salesData.length;
-        const totalPurchase = purchaseData.length;
-
-        const pieData = [
-          { name: t('Total Sales'), value: totalSales },
-          { name: t('Total Purchase'), value: totalPurchase },
-        ];
-
-        setDashboardData({
-          barData,
-          pieData,
-          totals: { sales: totalSalesAmt, purchase: totalPurchaseAmt }
-        });
-
-      } catch (error) {
-        console.error("Error loading dashboard:", error);
-      } finally {
-        setLoading(false);
+    // Also include sales entries if any
+    salesList.forEach((entry) => {
+      const name = entry.productName || entry.product_name;
+      if (name) {
+        if (!map[name]) map[name] = { name, stock: 0, sales: 0, purchase: 0 };
+        map[name].sales += Number(entry.quantity || 1);
       }
-    };
+    });
 
-    loadDashboardData();
-  }, [t]);
+    // Take top 8 active items
+    return Object.values(map)
+      .filter((x) => x.stock > 0 || x.purchase > 0 || x.sales > 0)
+      .slice(0, 8);
+  }, [stocksList, salesList]);
 
-  const currentDate = new Date().toLocaleDateString('en-GB', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-  });
+  // Pie Chart Data
+  const pieChartData = useMemo(() => {
+    const s = todaySalesAmt > 0 ? todaySalesAmt : salesList.length;
+    const p = todayPurchaseAmt > 0 ? todayPurchaseAmt : purchaseList.length;
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-[60vh]">
-        <div className="w-12 h-12 border-4 border-nature-200 border-t-nature-500 rounded-full animate-spin"></div>
-      </div>
-    );
-  }
+    if (s === 0 && p === 0) {
+      return [
+        { name: t('action_new_sale') || 'விற்பனை', value: 1, color: '#059669' },
+        { name: t('action_new_purchase') || 'கொள்முதல்', value: 1, color: '#2563EB' }
+      ];
+    }
+
+    return [
+      { name: t('action_new_sale') || 'விற்பனை', value: s, color: '#059669' },
+      { name: t('action_new_purchase') || 'கொள்முதல்', value: p, color: '#2563EB' }
+    ];
+  }, [todaySalesAmt, todayPurchaseAmt, salesList, purchaseList, t]);
+
+  // Attention Items: Low Stock and Out of Stock
+  const attentionItems = useMemo(() => {
+    return stocksList
+      .map((s) => {
+        const purchases = parseFloat(s.total_purchase_quality || 0);
+        const sales = parseFloat(s.total_sales_quality || 0);
+        const balance = purchases - sales;
+        return {
+          ...s,
+          balance
+        };
+      })
+      .filter((s) => s.balance <= 5)
+      .slice(0, 5);
+  }, [stocksList]);
+
+  // Currency Formatter
+  const formatRupee = (amt) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0
+    }).format(amt || 0);
+  };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-nature-800 dark:text-nature-100 tracking-tight">{t("Today's Overview")}</h2>
-          <p className="text-nature-500 dark:text-nature-400 mt-1">{currentDate}</p>
-        </div>
-      </div>
+    <ERPLayout
+      pageTitle={t('dashboard_title') || 'முகப்பு'}
+      breadcrumbCurrent={t('dashboard_title') || 'முகப்பு'}
+    >
+      <div className="dashboard-container">
+        {/* Welcome Banner */}
+        <section className="dashboard-welcome-banner">
+          <div className="welcome-title-group">
+            <h1>
+              {t('greeting_admin') || 'வணக்கம்'}, {user?.name || user?.username || 'நிர்வாகி'}!
+            </h1>
+            <p className="welcome-subtitle">
+              {t('dashboard_subgreeting') || 'பூ மார்க்கெட் · இன்றைய வணிக செயல்பாடுகள் மற்றும் நிதி நிலை'}
+            </p>
+          </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <GlassCard className="p-6 relative overflow-hidden group bg-white/70 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50">
-          <div className="absolute -right-6 -top-6 w-24 h-24 bg-nature-100 dark:bg-nature-800/80 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-500"></div>
-          <div className="relative z-10 flex items-center justify-between">
-            <div>
-              <h5 className="text-sm font-bold text-nature-500 dark:text-nature-400 mb-2 uppercase tracking-wider">{t('Total Sales')}</h5>
-              <h3 className="text-4xl font-extrabold text-nature-800 dark:text-nature-100">₹ {dashboardData.totals.sales.toLocaleString()}</h3>
+          <div className="welcome-actions">
+            <div className="welcome-date-badge">
+              <FontAwesomeIcon icon={faCalendarAlt} />
+              <input
+                type="date"
+                className="bg-transparent text-white border-0 font-numeric"
+                style={{ outline: 'none', cursor: 'pointer', colorScheme: 'dark' }}
+                value={formatLocalDate(selectedDate)}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    const [y, m, d] = e.target.value.split('-').map(Number);
+                    setSelectedDate(new Date(y, m - 1, d));
+                  }
+                }}
+                aria-label="Select dashboard date"
+              />
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-nature-100 dark:bg-nature-800 text-nature-600 dark:text-nature-300 flex items-center justify-center shadow-inner">
-              <FontAwesomeIcon icon={faChartLine} size="lg" />
+
+            <button
+              className={`btn-erp-secondary ${refreshing ? 'erp-spinning' : ''}`}
+              onClick={() => loadDashboardData(selectedDate, true)}
+              title={t('refresh') || 'புதுப்பி'}
+              aria-label="Refresh dashboard data"
+            >
+              <FontAwesomeIcon icon={faRotateRight} />
+            </button>
+          </div>
+        </section>
+
+        {/* Core Financial & Business KPIs */}
+        {loading ? (
+          <div className="stock-kpis-grid dashboard-kpis-grid">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="stock-kpi-card erp-skeleton">
+                <div className="stock-kpi-skeleton-line short"></div>
+                <div className="stock-kpi-skeleton-line long"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+        <section className="stock-kpis-grid dashboard-kpis-grid" aria-label="வணிக முக்கிய அளவீடுகள்">
+          {/* 1. Today Sales */}
+          <div className="stock-kpi-card card-emerald">
+            <div className="stock-kpi-icon-wrap">
+              <FontAwesomeIcon icon={faMoneyBillWave} />
+            </div>
+            <div className="stock-kpi-content">
+              <span className="stock-kpi-label">{t('kpi_today_sales') || 'இன்று விற்பனை'}</span>
+              <div className="stock-kpi-value-group">
+                <span className="stock-kpi-value font-numeric text-emerald">
+                  {formatRupee(todaySalesAmt)}
+                </span>
+              </div>
+              <span className="stock-kpi-subtext">
+                {salesList.length} பரிவர்த்தனைகள்
+              </span>
             </div>
           </div>
-        </GlassCard>
-        
-        <GlassCard className="p-6 relative overflow-hidden group bg-white/70 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50">
-          <div className="absolute -right-6 -top-6 w-24 h-24 bg-orange-50 dark:bg-orange-900/20 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-500"></div>
-          <div className="relative z-10 flex items-center justify-between">
-            <div>
-              <h5 className="text-sm font-bold text-accent-orange dark:text-orange-400 mb-2 uppercase tracking-wider">{t('Total Purchase')}</h5>
-              <h3 className="text-4xl font-extrabold text-nature-800 dark:text-nature-100">₹ {dashboardData.totals.purchase.toLocaleString()}</h3>
+
+          {/* 2. Today Purchases */}
+          <div className="stock-kpi-card card-blue">
+            <div className="stock-kpi-icon-wrap">
+              <FontAwesomeIcon icon={faCartPlus} />
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-orange-50 dark:bg-orange-900/30 text-accent-orange flex items-center justify-center shadow-inner">
-              <FontAwesomeIcon icon={faShoppingCart} size="lg" />
+            <div className="stock-kpi-content">
+              <span className="stock-kpi-label">{t('kpi_today_purchase_qty') || 'இன்று கொள்முதல்'}</span>
+              <div className="stock-kpi-value-group">
+                <span className="stock-kpi-value font-numeric text-blue">
+                  {formatRupee(todayPurchaseAmt)}
+                </span>
+              </div>
+              <span className="stock-kpi-subtext">
+                {purchaseList.length} வரவுகள்
+              </span>
             </div>
           </div>
-        </GlassCard>
 
-        <GlassCard className="p-6 relative overflow-hidden group bg-gradient-to-br from-white/70 to-nature-50/70 dark:from-nature-900/60 dark:to-nature-800/60 border border-nature-200 dark:border-nature-700/50">
-           <div className="absolute -right-6 -top-6 w-24 h-24 bg-nature-100 dark:bg-nature-700/50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-500"></div>
-           <div className="relative z-10 flex flex-col justify-between h-full">
-             <div className="flex items-center justify-between">
-               <h5 className="text-sm font-bold text-nature-500 dark:text-nature-400 uppercase tracking-wider">{t('System Status')}</h5>
-               <FontAwesomeIcon icon={faServer} className="text-nature-400 dark:text-nature-500" />
-             </div>
-             <h3 className="text-xl font-semibold text-nature-700 dark:text-nature-200 mt-4 flex items-center gap-3">
-               <FontAwesomeIcon icon={faCircleCheck} className="text-nature-500 animate-pulse" />
-               {t('All systems operational')}
-             </h3>
-           </div>
-        </GlassCard>
-      </div>
+          {/* 3. Customer Outstanding */}
+          <div className="stock-kpi-card card-violet">
+            <div className="stock-kpi-icon-wrap">
+              <FontAwesomeIcon icon={faReceipt} />
+            </div>
+            <div className="stock-kpi-content">
+              <span className="stock-kpi-label">{t('kpi_customer_outstanding') || 'வாடிக்கையாளர் பாக்கி'}</span>
+              <div className="stock-kpi-value-group">
+                <span className="stock-kpi-value font-numeric">
+                  {formatRupee(customerOutstanding)}
+                </span>
+              </div>
+              <span className="stock-kpi-subtext">
+                மொத்த வசூல் பாக்கி
+              </span>
+            </div>
+          </div>
+        </section>
+        )}
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Bar Chart: Stock vs Purchase vs Sales */}
-        <div className="lg:col-span-2">
-          <GlassCard className="p-6 h-full flex flex-col bg-white/70 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50">
-            <h4 className="text-xl font-bold text-nature-800 dark:text-nature-100 mb-6">{t('Product Overview')}</h4>
-            <div className="flex-1 w-full min-h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={dashboardData.barData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5f2e5" strokeOpacity={0.5} vertical={false} />
-                  <XAxis dataKey="name" tick={{fill: '#5c995c', fontSize: 12}} axisLine={false} tickLine={false} />
-                  <YAxis tick={{fill: '#5c995c', fontSize: 12}} axisLine={false} tickLine={false} />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '16px', border: '1px solid rgba(122,184,122,0.2)', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)', backgroundColor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)', color: '#244024' }}
-                    itemStyle={{ color: '#244024' }}
-                  />
-                  <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '14px', color: '#477a47' }}/>
-                  <Bar dataKey="stock" fill={CHART_COLORS.stock} name={t('Current Stock')} radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="purchase" fill={CHART_COLORS.purchase} name={t('Purchase Qty')} radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="sales" fill={CHART_COLORS.sales} name={t('Sales Qty')} radius={[4, 4, 0, 0]} />
+        {/* High-Frequency Quick Actions Bar */}
+        <section className="dashboard-quick-actions-bar">
+          <div className="quick-actions-title">
+            {t('quick_actions_title') || 'விரைவு செயல்பாடுகள்'}
+          </div>
+          <div className="quick-actions-grid">
+            <button
+              className="btn-dashboard-action sale"
+              onClick={() => navigate('/entries')}
+            >
+              <FontAwesomeIcon icon={faCartPlus} />
+              <span>+ {t('action_new_sale') || 'விற்பனை பதிவு'}</span>
+            </button>
+
+            <button
+              className="btn-dashboard-action purchase"
+              onClick={() => navigate('/entries')}
+            >
+              <FontAwesomeIcon icon={faBoxesStacked} />
+              <span>+ {t('action_new_purchase') || 'கொள்முதல் பதிவு'}</span>
+            </button>
+
+            <button
+              className="btn-dashboard-action receive"
+              onClick={() => navigate('/debit-credit')}
+            >
+              <FontAwesomeIcon icon={faReceipt} />
+              <span>{t('action_receive_money') || 'பணம் பெறுதல்'}</span>
+            </button>
+
+            <button
+              className="btn-dashboard-action pay"
+              onClick={() => navigate('/debit-credit')}
+            >
+              <FontAwesomeIcon icon={faHandHoldingDollar} />
+              <span>{t('action_pay_money') || 'பணம் செலுத்துதல்'}</span>
+            </button>
+          </div>
+        </section>
+
+        {/* Charts Grid */}
+        <section className="dashboard-charts-grid">
+          {/* Flower-Wise Sales vs Purchases */}
+          <div className="dashboard-chart-card">
+            <div className="chart-card-header">
+              <h2 className="chart-card-title">
+                {t('chart_sales_vs_purchase') || 'பொருட்கள் வாரியான விற்பனை vs கொள்முதல்'}
+              </h2>
+            </div>
+            <div className="chart-wrapper">
+              <ResponsiveContainer width="100%" height={320} minWidth={250}>
+                <BarChart
+                  data={barChartData.length > 0 ? barChartData : [
+                    { name: 'மல்லி', purchase: 150, sales: 120 },
+                    { name: 'பிச்சி', purchase: 80, sales: 75 },
+                    { name: 'செவ்வந்தி', purchase: 90, sales: 60 },
+                    { name: 'அரளி', purchase: 110, sales: 95 }
+                  ]}
+                  margin={{ top: 15, right: 20, left: 0, bottom: 25 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} angle={-15} textAnchor="end" />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip />
+                  <Legend verticalAlign="top" height={36} />
+                  <Bar dataKey="purchase" fill="#2563EB" name={t('chart_purchase_label') || 'கொள்முதல்'} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="sales" fill="#059669" name={t('chart_sales_label') || 'விற்பனை'} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          </GlassCard>
-        </div>
+          </div>
 
-        {/* Pie Chart: Total Amount Comparison */}
-        <div className="lg:col-span-1">
-          <GlassCard className="p-6 h-full flex flex-col items-center bg-white/70 dark:bg-nature-900/60 border border-nature-200 dark:border-nature-700/50">
-            <h4 className="text-xl font-bold text-nature-800 dark:text-nature-100 mb-6 w-full text-left">{t('Activity Ratio')}</h4>
-            <div className="flex-1 w-full min-h-[300px] flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
+          {/* Financial Ratio Split */}
+          <div className="dashboard-chart-card">
+            <div className="chart-card-header">
+              <h2 className="chart-card-title">
+                {t('chart_financial_split') || 'விற்பனை vs கொள்முதல் நிதி பகிர்வு'}
+              </h2>
+            </div>
+            <div className="chart-wrapper d-flex align-items-center justify-content-center">
+              <ResponsiveContainer width="100%" height={320} minWidth={250}>
                 <PieChart>
                   <Pie
-                    data={dashboardData.pieData}
+                    data={pieChartData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={80}
-                    outerRadius={120}
-                    paddingAngle={5}
+                    innerRadius={65}
+                    outerRadius={95}
+                    paddingAngle={4}
                     dataKey="value"
-                    stroke="none"
                   >
-                    {dashboardData.pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={index === 0 ? CHART_COLORS.sales : CHART_COLORS.purchase} />
+                    {pieChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip 
-                    formatter={(value) => `₹ ${value.toLocaleString()}`}
-                    contentStyle={{ borderRadius: '16px', border: '1px solid rgba(122,184,122,0.2)', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)', backgroundColor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)', color: '#244024' }}
-                    itemStyle={{ color: '#244024' }}
-                  />
-                  <Legend iconType="circle" verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '14px', color: '#477a47' }} />
+                  <Tooltip formatter={(val) => formatRupee(val)} />
+                  <Legend verticalAlign="bottom" height={36} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
-          </GlassCard>
-        </div>
+          </div>
+        </section>
+
+        {/* Lower Grid: Attention Panel & Quick Navigation */}
+        <section className="dashboard-lower-grid">
+          {/* Attention Panel: Low / Out of Stock Flowers */}
+          <div className="dashboard-panel-card">
+            <div className="panel-header">
+              <h2 className="panel-title text-danger">
+                <FontAwesomeIcon icon={faTriangleExclamation} />
+                <span>{t('attention_section_title') || 'குறைந்த இருப்பு எச்சரிக்கை'}</span>
+              </h2>
+              <button
+                className="btn-erp-ghost btn-sm"
+                onClick={() => navigate('/stocks')}
+              >
+                அனைத்தும் பார்
+              </button>
+            </div>
+
+            <div className="attention-items-list">
+              {attentionItems.length > 0 ? (
+                attentionItems.map((item) => (
+                  <div
+                    key={item.product_code || item.product_name}
+                    className={`attention-item ${item.balance <= 0 ? 'out' : 'low'}`}
+                  >
+                    <div className="d-flex align-items-center gap-2">
+                      <span className="attention-flower-name">{item.product_name}</span>
+                      <span className="erp-badge erp-badge-violet font-numeric">{item.product_code}</span>
+                    </div>
+
+                    <div className="d-flex align-items-center gap-2">
+                      <span className="font-numeric fw-bold">
+                        {item.balance.toFixed(2)} {item.unit || 'kg'}
+                      </span>
+                      <span className={`attention-badge ${item.balance <= 0 ? 'out' : 'low'}`}>
+                        {item.balance <= 0 ? 'இருப்பு இல்லை' : 'குறைவு'}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-muted">
+                  அனைத்து பூ வகைகளிலும் போதுமான இருப்பு உள்ளது!
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Recent Activity / Fast Links */}
+          <div className="dashboard-panel-card">
+            <div className="panel-header">
+              <h2 className="panel-title">
+                <FontAwesomeIcon icon={faClockRotateLeft} className="text-primary" />
+                <span>{t('recent_activity_title') || 'சமீபத்திய வணிக பதிவு சுருக்கம்'}</span>
+              </h2>
+              <button
+                className="btn-erp-ghost btn-sm"
+                onClick={() => navigate('/entries')}
+              >
+                பதிவுகள்
+              </button>
+            </div>
+
+            <div className="activity-feed-list">
+              <div className="activity-feed-item">
+                <div className="activity-feed-left">
+                  <div className="activity-feed-icon sale">
+                    <FontAwesomeIcon icon={faCartPlus} />
+                  </div>
+                  <div>
+                    <span className="activity-feed-title">இன்றைய மொத்த விற்பனைகள்</span>
+                    <span className="activity-feed-meta">பதிவு செய்யப்பட்ட பூ விற்பனைகள்</span>
+                  </div>
+                </div>
+                <span className="activity-feed-amount font-numeric text-emerald">
+                  {formatRupee(todaySalesAmt)}
+                </span>
+              </div>
+
+              <div className="activity-feed-item">
+                <div className="activity-feed-left">
+                  <div className="activity-feed-icon purchase">
+                    <FontAwesomeIcon icon={faBoxesStacked} />
+                  </div>
+                  <div>
+                    <span className="activity-feed-title">இன்றைய மொத்த கொள்முதல்கள்</span>
+                    <span className="activity-feed-meta">சப்ளையர்களிடமிருந்து பெறப்பட்ட பூக்கள்</span>
+                  </div>
+                </div>
+                <span className="activity-feed-amount font-numeric text-blue">
+                  {formatRupee(todayPurchaseAmt)}
+                </span>
+              </div>
+
+              <div className="activity-feed-item">
+                <div className="activity-feed-left">
+                  <div className="activity-feed-icon sale">
+                    <FontAwesomeIcon icon={faReceipt} />
+                  </div>
+                  <div>
+                    <span className="activity-feed-title">வாடிக்கையாளர் மொத்த பாக்கி</span>
+                    <span className="activity-feed-meta">கடை மற்றும் வியாபாரிகளிடம் வசூலிக்கப்பட வேண்டியது</span>
+                  </div>
+                </div>
+                <span className="activity-feed-amount font-numeric text-primary">
+                  {formatRupee(customerOutstanding)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
-    </div>
+    </ERPLayout>
   );
 };
 

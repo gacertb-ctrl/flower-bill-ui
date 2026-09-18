@@ -3,7 +3,7 @@ import axios from 'axios';
 import { refreshToken } from './authAPI';
 
 const apiClient = axios.create({
-    baseURL: process.env.REACT_APP_API_BASE_URL
+    baseURL: process.env.REACT_APP_API_BASE_URL || ''
 });
 
 // Add auth token to requests

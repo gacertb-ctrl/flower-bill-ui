@@ -20,15 +20,15 @@ const Table = ({ page, data, setShowModal, setEditData, loadLastTransaction, del
       deleteData(code);
     }
   };  
-
   // Define Columns based on the Page Type
   const getColumns = () => {
     const commonActions = {
       name: t('action'),
       cell: (row) => (
-        <div className="flex items-center gap-2">
+
+        <div className="d-flex">
           <button
-            className="p-2 text-nature-500 hover:text-nature-700 bg-nature-100 hover:bg-nature-200 dark:bg-nature-800 dark:hover:bg-nature-700 dark:text-nature-300 rounded-lg transition-colors"
+            className="btn btn-primary btn-sm me-1"
             title={t('edit')}
             onClick={() => handleEdit(row)}
           >
@@ -36,7 +36,7 @@ const Table = ({ page, data, setShowModal, setEditData, loadLastTransaction, del
           </button>
           {page !== 'product' && (
             <button
-              className="p-2 text-accent-blue hover:text-blue-600 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 rounded-lg transition-colors"
+              className="btn btn-info btn-sm me-1 text-white"
               title={t('last transaction')}
               onClick={() => loadLastTransaction(page === 'product' ? page : row.code, row.customer_supplier_id)}
             >
@@ -45,7 +45,8 @@ const Table = ({ page, data, setShowModal, setEditData, loadLastTransaction, del
           )}
           { user.role === 'admin' && (
             <button
-              className="p-2 text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/50 rounded-lg transition-colors"
+              className="btn btn-danger btn-sm"
+              // title={t('confirm.delete')}
               onClick={() => handleDelete(row.code)}
             >
               <FontAwesomeIcon icon={faTrash} />
@@ -117,10 +118,11 @@ const Table = ({ page, data, setShowModal, setEditData, loadLastTransaction, del
             name: t('quantity'), 
             selector: row => Number(row.total_purchase_quality - row.total_sales_quality).toFixed(2), 
             sortable: true,
+            // Conditional styling: Highlight low stock in red
             conditionalCellStyles: [
               {
                 when: row => (row.total_purchase_quality - row.total_sales_quality) <= 0,
-                style: { color: '#ef4444', fontWeight: 'bold' },
+                style: { color: 'red', fontWeight: 'bold' },
               },
             ]
           },
@@ -132,11 +134,7 @@ const Table = ({ page, data, setShowModal, setEditData, loadLastTransaction, del
   };
 
   if (!data || data.length === 0) {
-    return (
-      <div className="w-full p-8 text-center bg-white/50 dark:bg-nature-800/50 rounded-xl border border-nature-200 dark:border-nature-700/50 text-nature-600 dark:text-nature-400">
-        {t('noDataAvailable')}
-      </div>
-    );
+    return <div className="alert alert-info">{t('noDataAvailable')}</div>;
   }
 
   return (
