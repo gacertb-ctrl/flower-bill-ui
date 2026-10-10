@@ -8,7 +8,6 @@ import {
   faCalendar,
   faUsers,
   faBoxesStacked,
-  faChartPie,
   faFileInvoice,
   faMoneyBillWave,
   faGear,
@@ -107,17 +106,10 @@ const ERPLayout = ({ children, totalCustomers = 0, totalSuppliers = 0, totalProd
     },
     {
       path: '/products',
-      labelKey: 'products_title',
-      defaultLabel: 'பொருட்கள்',
+      labelKey: 'products_stocks_title',
+      defaultLabel: 'பொருட்கள் & இருப்பு',
       icon: faBoxesStacked,
       badge: totalProducts > 0 ? totalProducts : null
-    },
-    {
-      path: '/stocks',
-      labelKey: 'inventory_title',
-      defaultLabel: 'இருப்பு',
-      icon: faChartPie,
-      badge: totalStocks > 0 ? totalStocks : null
     },
     { path: '/debit-credit', labelKey: 'debitCredit', defaultLabel: 'பற்று / வரவு', icon: faMoneyBillWave },
     { path: '/report', labelKey: 'report', defaultLabel: 'அறிக்கைகள்', icon: faFileInvoice },
@@ -157,7 +149,9 @@ const ERPLayout = ({ children, totalCustomers = 0, totalSuppliers = 0, totalProd
         <nav className="erp-sidebar-nav">
           <div className="erp-nav-section-title">{t('main_menu') || 'முதன்மை மெனு'}</div>
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = item.path === '/products'
+              ? (location.pathname === '/products' || location.pathname === '/stocks')
+              : location.pathname === item.path;
             return (
               <Link
                 key={item.path}
@@ -276,6 +270,13 @@ const ERPLayout = ({ children, totalCustomers = 0, totalSuppliers = 0, totalProd
             <span>{t('quick_nav_home') || 'முகப்பு'}</span>
           </Link>
           <Link
+            to="/entries"
+            className={`erp-mobile-nav-link ${location.pathname === '/entries' ? 'active' : ''}`}
+          >
+            <FontAwesomeIcon icon={faCalendar} />
+            <span>{t('quick_nav_entries') || 'பதிவுகள்'}</span>
+          </Link>
+          <Link
             to="/customers"
             className={`erp-mobile-nav-link ${location.pathname === '/customers' ? 'active' : ''}`}
           >
@@ -291,17 +292,10 @@ const ERPLayout = ({ children, totalCustomers = 0, totalSuppliers = 0, totalProd
           </Link>
           <Link
             to="/products"
-            className={`erp-mobile-nav-link ${location.pathname === '/products' ? 'active' : ''}`}
+            className={`erp-mobile-nav-link ${location.pathname === '/products' || location.pathname === '/stocks' ? 'active' : ''}`}
           >
             <FontAwesomeIcon icon={faBoxesStacked} />
-            <span>{t('products_title') || 'பொருட்கள்'}</span>
-          </Link>
-          <Link
-            to="/stocks"
-            className={`erp-mobile-nav-link ${location.pathname === '/stocks' ? 'active' : ''}`}
-          >
-            <FontAwesomeIcon icon={faChartPie} />
-            <span>{t('inventory_title') || 'இருப்பு'}</span>
+            <span>{t('products_stocks_title') || 'பொருட்கள்'}</span>
           </Link>
         </div>
       </nav>

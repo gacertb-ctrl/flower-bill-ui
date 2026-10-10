@@ -5,7 +5,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faRotateRight,
   faFileExport,
-  faPrint,
   faPlus
 } from '@fortawesome/free-solid-svg-icons';
 import './StockControls.css';
@@ -13,7 +12,6 @@ import './StockControls.css';
 const StockHeader = ({
   onRefresh,
   onExport,
-  onPrint,
   refreshing = false
 }) => {
   const { t } = useTranslation();
@@ -49,17 +47,6 @@ const StockHeader = ({
         >
           <FontAwesomeIcon icon={faFileExport} />
           <span className="d-none d-sm-inline">{t('export') || 'ஏற்றுமதி'}</span>
-        </button>
-
-        {/* Print */}
-        <button
-          className="btn-erp-secondary"
-          onClick={onPrint}
-          title={t('print') || 'அச்சிடு'}
-          aria-label="Print stock records"
-        >
-          <FontAwesomeIcon icon={faPrint} />
-          <span className="d-none d-sm-inline">{t('print') || 'அச்சிடு'}</span>
         </button>
 
         {/* New Entry / Adjustment */}

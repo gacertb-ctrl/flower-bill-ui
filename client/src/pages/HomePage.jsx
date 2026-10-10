@@ -356,17 +356,18 @@ const HomePage = () => {
                 {t('chart_financial_split') || 'விற்பனை vs கொள்முதல் நிதி பகிர்வு'}
               </h2>
             </div>
-            <div className="chart-wrapper d-flex align-items-center justify-content-center">
+            <div className="chart-wrapper">
               <ResponsiveContainer width="100%" height={320} minWidth={250}>
                 <PieChart>
                   <Pie
                     data={pieChartData}
                     cx="50%"
-                    cy="50%"
-                    innerRadius={65}
+                    cy="45%"
+                    innerRadius={60}
                     outerRadius={95}
                     paddingAngle={4}
                     dataKey="value"
+                    isAnimationActive={false}
                   >
                     {pieChartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -391,7 +392,7 @@ const HomePage = () => {
               </h2>
               <button
                 className="btn-erp-ghost btn-sm"
-                onClick={() => navigate('/stocks')}
+                onClick={() => navigate('/products')}
               >
                 அனைத்தும் பார்
               </button>

@@ -8,7 +8,6 @@ import {
   faPen,
   faHistory,
   faMoneyBillWave,
-  faPrint,
   faTrash,
   faChevronLeft,
   faChevronRight,
@@ -68,10 +67,6 @@ const SupplierTable = ({
     }
   }, [totalPages, currentPage]);
 
-  // Print single supplier statement or dispatch
-  const handlePrintSupplier = (row) => {
-    window.open(`/print-report?period=date&type=purchase&code=${row.code}`, '_blank');
-  };
 
   // 1. Error state
   if (error) {
@@ -324,16 +319,6 @@ const SupplierTable = ({
                               <span>{t('quick_make_payment') || 'பணம் செலுத்துதல்'}</span>
                             </button>
 
-                            <button
-                              className="action-dropdown-item"
-                              onClick={() => {
-                                handlePrintSupplier(row);
-                                setActiveMenuCode(null);
-                              }}
-                            >
-                              <FontAwesomeIcon icon={faPrint} />
-                              <span>{t('action_print') || 'அச்சிடு'}</span>
-                            </button>
 
                             {user?.role === 'admin' && (
                               <button

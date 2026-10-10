@@ -4,7 +4,6 @@ import { AuthProvider } from './context/AuthContext';
 import HomePage from './pages/HomePage';
 import CustomerPage from './pages/CustomerPage';
 import ProductPage from './pages/ProductPage';
-import StocksPage from './pages/StocksPage';
 import SupplierPage from './pages/SupplierPage';
 import EntryPage from './pages/EntryPage';
 import LoginPage from './pages/LoginPage';
@@ -44,7 +43,7 @@ function AppContent() {
         <Route path="/" element={<HomePage />} />
         <Route path="/customers" element={<CustomerPage />} />
         <Route path="/products" element={<ProductPage />} />
-        <Route path="/stocks" element={<StocksPage />} />
+        <Route path="/stocks" element={<ProductPage />} />
         <Route path="/suppliers" element={<SupplierPage />} />
         <Route path="/entries" element={<EntryPage />} />
         <Route path="/report" element={<ReportPage />} />

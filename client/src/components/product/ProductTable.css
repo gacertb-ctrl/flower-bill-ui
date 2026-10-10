@@ -270,6 +270,55 @@
   border: 1px solid var(--border-subtle);
 }
 
+.mobile-card-financials-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  background-color: #F8FAFC;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  margin-bottom: 0.75rem;
+}
+
+.col-span-2 {
+  grid-column: span 2;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+  user-select: none;
+}
+
+.th-sortable {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.sort-icon-inactive {
+  opacity: 0.3;
+  font-size: 0.75rem;
+}
+
+.sort-icon-active {
+  color: var(--primary);
+  font-size: 0.75rem;
+}
+
+.text-blue {
+  color: #2563EB !important;
+}
+
+.text-emerald {
+  color: #059669 !important;
+}
+
+.text-amber {
+  color: #D97706 !important;
+}
+
+
 .fin-item {
   display: flex;
   flex-direction: column;

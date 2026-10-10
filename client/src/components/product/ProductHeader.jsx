@@ -4,8 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faPlus,
   faSync,
-  faDownload,
-  faPrint
+  faDownload
 } from '@fortawesome/free-solid-svg-icons';
 import './ProductControls.css';
 
@@ -13,7 +12,6 @@ const ProductHeader = ({
   onAddNew,
   onRefresh,
   onExport,
-  onPrint,
   loading = false
 }) => {
   const { t } = useTranslation();
@@ -22,10 +20,10 @@ const ProductHeader = ({
     <div className="product-page-header">
       <div className="product-title-group">
         <h1 className="product-main-title">
-          {t('products_title') || 'பொருட்கள்'}
+          {t('products_and_stock_title') || `${t('products_title') || 'பொருட்கள்'} & ${t('inventory_title') || 'இருப்பு'}`}
         </h1>
         <span className="product-subtitle">
-          {t('product_management_desc') || 'பூ வகைகள், விலை மற்றும் இருப்பு மேலாண்மை'}
+          {t('product_stock_management_desc') || 'பூ வகைகள், விலை, தினசரி வரத்து, விற்பனை மற்றும் இருப்பு இருப்புநிலை மேலாண்மை'}
         </span>
       </div>
 
@@ -49,16 +47,6 @@ const ProductHeader = ({
         >
           <FontAwesomeIcon icon={faDownload} />
           <span className="d-none d-sm-inline">{t('export') || 'ஏற்றுமதி'}</span>
-        </button>
-
-        {/* Secondary: Print */}
-        <button
-          className="btn-erp-secondary"
-          onClick={onPrint}
-          title={t('print_records') || 'அச்சிடு'}
-        >
-          <FontAwesomeIcon icon={faPrint} />
-          <span className="d-none d-sm-inline">{t('print_records') || 'அச்சிடு'}</span>
         </button>
 
         {/* Primary: + Add Product */}

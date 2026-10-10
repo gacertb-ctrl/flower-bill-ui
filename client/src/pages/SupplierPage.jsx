@@ -265,14 +265,9 @@ const SupplierPage = () => {
     document.body.removeChild(link);
   };
 
-  // Print records handler
-  const handlePrint = () => {
-    window.print();
-  };
-
   return (
     <ERPLayout totalSuppliers={supplierData.length} breadcrumbCurrent={t('suppliers_title') || 'சப்ளையர்கள்'}>
-      {/* 1. Header with Add, Refresh, Export, Print */}
+      {/* 1. Header with Add, Refresh, Export */}
       <SupplierHeader
         onAddNew={() => {
           setEditData(null);
@@ -280,7 +275,6 @@ const SupplierPage = () => {
         }}
         onRefresh={fetchData}
         onExport={handleExportCSV}
-        onPrint={handlePrint}
         loading={loading}
       />
 

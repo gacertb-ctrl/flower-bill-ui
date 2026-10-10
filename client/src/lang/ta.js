@@ -261,6 +261,7 @@ const lang = {
     "supplier_deleted_success": "சப்ளையர் வெற்றிகரமாக நீக்கப்பட்டது",
     // 2026 Product ERP keys
     "products_title": "பொருட்கள்",
+    "products_stocks_title": "பொருட்கள் & இருப்பு",
     "product_management": "பொருள் மேலாண்மை",
     "product_management_desc": "பூ வகைகள், விலை மற்றும் இருப்பு மேலாண்மை",
     "add_new_product": "+ புதிய பொருள்",

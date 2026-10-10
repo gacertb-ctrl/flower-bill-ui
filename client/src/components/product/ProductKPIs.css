@@ -2,7 +2,7 @@
 
 .product-kpi-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
@@ -38,6 +38,11 @@
 .kpi-violet .kpi-icon-wrapper {
   background-color: var(--primary-light);
   color: var(--primary);
+}
+
+.kpi-blue .kpi-icon-wrapper {
+  background-color: #EFF6FF;
+  color: #2563EB;
 }
 
 .kpi-green .kpi-icon-wrapper {

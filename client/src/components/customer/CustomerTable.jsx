@@ -8,7 +8,6 @@ import {
   faPen,
   faHistory,
   faMoneyBillWave,
-  faPrint,
   faTrash,
   faChevronLeft,
   faChevronRight,
@@ -68,10 +67,6 @@ const CustomerTable = ({
     }
   }, [totalPages, currentPage]);
 
-  // Print single customer statement or dispatch
-  const handlePrintCustomer = (row) => {
-    window.open(`/print-report?period=date&type=sales&code=${row.code}`, '_blank');
-  };
 
   // 1. Error state
   if (error) {
@@ -311,16 +306,6 @@ const CustomerTable = ({
                               <span>{t('action_payment') || 'பணம் பெறுதல்'}</span>
                             </button>
 
-                            <button
-                              className="action-dropdown-item"
-                              onClick={() => {
-                                handlePrintCustomer(row);
-                                setActiveMenuCode(null);
-                              }}
-                            >
-                              <FontAwesomeIcon icon={faPrint} />
-                              <span>{t('action_print') || 'அச்சிடு'}</span>
-                            </button>
 
                             {user?.role === 'admin' && (
                               <button

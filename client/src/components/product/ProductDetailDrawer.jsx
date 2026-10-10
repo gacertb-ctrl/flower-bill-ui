@@ -1,14 +1,17 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faTimes,
   faPen,
-  faPrint,
   faTrash,
   faBoxesStacked,
   faTag,
-  faScaleBalanced
+  faScaleBalanced,
+  faCartPlus,
+  faArrowDown,
+  faArrowUp
 } from '@fortawesome/free-solid-svg-icons';
 import { formatRupee } from './ProductKPIs';
 import './ProductDetailDrawer.css';
@@ -21,12 +24,15 @@ const ProductDetailDrawer = ({
   user
 }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   if (!product) return null;
 
   const price = parseFloat(product.price || 0);
-  const quality = parseFloat(product.quality || 0);
-  const stockValue = quality > 0 ? (quality * price) : 0;
+  const purchases = parseFloat(product.total_purchase_quality || 0);
+  const sales = parseFloat(product.total_sales_quality || 0);
+  const balance = product.balance !== undefined ? parseFloat(product.balance) : parseFloat(product.quality || 0);
+  const stockValue = product.valuation !== undefined ? parseFloat(product.valuation) : (balance > 0 ? balance * price : 0);
 
   // Stock status
   const getStockStatus = (q) => {
@@ -39,7 +45,7 @@ const ProductDetailDrawer = ({
     return { label: t('stock_out') || 'இருப்பு இல்லை', className: 'out', dot: '🔴' };
   };
 
-  const status = getStockStatus(quality);
+  const status = getStockStatus(balance);
 
   const getUnitDisplay = (unit) => {
     if (!unit) return '-';
@@ -56,9 +62,9 @@ const ProductDetailDrawer = ({
         {/* Drawer Header */}
         <div className="detail-drawer-header">
           <div className="detail-drawer-title-group">
-            <h2 className="detail-product-name">{product.name}</h2>
+            <h2 className="detail-product-name">{product.name || product.product_name}</h2>
             <div className="detail-meta-row">
-              <span className="erp-badge erp-badge-violet font-numeric">{product.code}</span>
+              <span className="erp-badge erp-badge-violet font-numeric">{product.code || product.product_code}</span>
               <span className="unit-badge">{getUnitDisplay(product.unit)}</span>
               <span className={`stock-status-pill ${status.className}`}>
                 <span>{status.dot}</span>
@@ -78,7 +84,7 @@ const ProductDetailDrawer = ({
 
         {/* Drawer Body */}
         <div className="detail-drawer-body">
-          {/* Financial & Stock Highlight Banner */}
+          {/* Financial & Stock Highlight Banner (5 Consolidated Metrics) */}
           <div className="drawer-financial-cards">
             <div className="drawer-fin-item">
               <span className="drawer-fin-label">{t('col_price') || 'விலை'}</span>
@@ -86,16 +92,36 @@ const ProductDetailDrawer = ({
             </div>
 
             <div className="drawer-fin-item">
-              <span className="drawer-fin-label">{t('col_stock') || 'இருப்பு'}</span>
-              <span className={`drawer-fin-val font-numeric ${quality <= 0 ? 'text-danger' : 'text-success'}`}>
-                {quality.toFixed(2)} {product.unit || ''}
+              <span className="drawer-fin-label">{t('col_stock_value') || 'மதிப்பு'}</span>
+              <span className="drawer-fin-val font-numeric text-muted">
+                {formatRupee(stockValue)}
               </span>
             </div>
 
             <div className="drawer-fin-item">
-              <span className="drawer-fin-label">{t('col_stock_value') || 'மதிப்பு'}</span>
-              <span className="drawer-fin-val font-numeric text-muted">
-                {formatRupee(stockValue)}
+              <span className="drawer-fin-label">
+                <FontAwesomeIcon icon={faArrowDown} className="me-1 text-blue" />
+                {t('col_incoming') || 'வரத்து (கொள்முதல்)'}
+              </span>
+              <span className="drawer-fin-val font-numeric text-blue">
+                +{purchases.toFixed(2)} {product.unit || ''}
+              </span>
+            </div>
+
+            <div className="drawer-fin-item">
+              <span className="drawer-fin-label">
+                <FontAwesomeIcon icon={faArrowUp} className="me-1 text-emerald" />
+                {t('col_outgoing') || 'விற்பனை'}
+              </span>
+              <span className="drawer-fin-val font-numeric text-emerald">
+                -{sales.toFixed(2)} {product.unit || ''}
+              </span>
+            </div>
+
+            <div className="drawer-fin-item drawer-fin-full">
+              <span className="drawer-fin-label">{t('col_stock') || 'தற்போதைய இருப்பு'}</span>
+              <span className={`drawer-fin-val font-numeric ${balance <= 0 ? 'text-danger' : balance <= 5 ? 'text-amber' : 'text-primary'}`}>
+                {balance.toFixed(2)} {product.unit || ''}
               </span>
             </div>
           </div>
@@ -112,17 +138,21 @@ const ProductDetailDrawer = ({
 
             <button
               className="btn-erp-secondary"
-              onClick={() => window.print()}
-              title={t('print_records') || 'அச்சிடு'}
+              onClick={() => {
+                navigate('/entries');
+                onClose();
+              }}
+              title={t('quick_nav_entries') || 'நாள் பதிவு'}
             >
-              <FontAwesomeIcon icon={faPrint} />
-              <span>{t('print_records') || 'அச்சிடு'}</span>
+              <FontAwesomeIcon icon={faCartPlus} />
+              <span>{t('quick_nav_entries') || 'பதிவு'}</span>
             </button>
+
 
             {user?.role === 'admin' && (
               <button
                 className="btn-erp-secondary text-danger"
-                onClick={() => onDelete(product.code)}
+                onClick={() => onDelete(product.code || product.product_code)}
                 title={t('action_delete') || 'நீக்கு'}
               >
                 <FontAwesomeIcon icon={faTrash} />
@@ -138,7 +168,7 @@ const ProductDetailDrawer = ({
                 <FontAwesomeIcon icon={faTag} className="me-2 text-muted" />
                 {t('product.code') || 'பொருள் குறியீடு'}
               </span>
-              <span className="detail-info-value font-numeric">{product.code}</span>
+              <span className="detail-info-value font-numeric">{product.code || product.product_code}</span>
             </div>
 
             <div className="detail-info-row">
@@ -146,7 +176,7 @@ const ProductDetailDrawer = ({
                 <FontAwesomeIcon icon={faBoxesStacked} className="me-2 text-muted" />
                 {t('product.name') || 'பொருள் பெயர்'}
               </span>
-              <span className="detail-info-value">{product.name}</span>
+              <span className="detail-info-value">{product.name || product.product_name}</span>
             </div>
 
             <div className="detail-info-row">

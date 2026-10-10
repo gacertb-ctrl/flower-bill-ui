@@ -256,11 +256,6 @@ const CustomerPage = () => {
     document.body.removeChild(link);
   };
 
-  // Print Customer List
-  const handlePrintList = () => {
-    window.print();
-  };
-
   return (
     <ERPLayout totalCustomers={customerData.length}>
       {/* 1. Page Header */}
@@ -271,7 +266,6 @@ const CustomerPage = () => {
         }}
         onRefresh={fetchData}
         onExport={handleExportCSV}
-        onPrint={handlePrintList}
         loading={loading}
       />
 

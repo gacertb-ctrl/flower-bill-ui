@@ -4,8 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faPlus,
   faSync,
-  faDownload,
-  faPrint
+  faDownload
 } from '@fortawesome/free-solid-svg-icons';
 import './CustomerControls.css';
 
@@ -13,7 +12,6 @@ const CustomerHeader = ({
   onAddNew,
   onRefresh,
   onExport,
-  onPrint,
   loading = false
 }) => {
   const { t } = useTranslation();
@@ -49,16 +47,6 @@ const CustomerHeader = ({
         >
           <FontAwesomeIcon icon={faDownload} />
           <span className="d-none d-sm-inline">{t('export') || 'ஏற்றுமதி'}</span>
-        </button>
-
-        {/* Secondary: Print */}
-        <button
-          className="btn-erp-secondary"
-          onClick={onPrint}
-          title={t('print_records') || 'அச்சிடு'}
-        >
-          <FontAwesomeIcon icon={faPrint} />
-          <span className="d-none d-sm-inline">{t('print_records') || 'அச்சிடு'}</span>
         </button>
 
         {/* Primary: + Add Customer */}

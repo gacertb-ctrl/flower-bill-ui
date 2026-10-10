@@ -7,7 +7,6 @@ import {
   faLocationDot,
   faMoneyBillWave,
   faPen,
-  faPrint,
   faHistory,
   faFileInvoice,
   faDownload
@@ -204,15 +203,6 @@ const CustomerDetailDrawer = ({
                 </div>
               </div>
 
-              <button
-                className="btn-erp-secondary w-100 mt-2"
-                onClick={() => {
-                  window.open(`/print-report?period=date&type=sales&code=${customer.code}`, '_blank');
-                }}
-              >
-                <FontAwesomeIcon icon={faPrint} />
-                <span>அறிக்கை அச்சிடு / பதிவிறக்கு</span>
-              </button>
             </div>
           )}
 

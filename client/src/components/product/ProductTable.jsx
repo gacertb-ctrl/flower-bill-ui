@@ -5,14 +5,18 @@ import {
   faEye,
   faEllipsisV,
   faPen,
-  faPrint,
   faTrash,
   faChevronLeft,
   faChevronRight,
   faExclamationTriangle,
   faInbox,
-  faRotateRight
+  faRotateRight,
+  faCartPlus,
+  faSort,
+  faSortUp,
+  faSortDown
 } from '@fortawesome/free-solid-svg-icons';
+import { useNavigate } from 'react-router-dom';
 import { formatRupee } from './ProductKPIs';
 import './ProductTable.css';
 
@@ -25,9 +29,13 @@ const ProductTable = ({
   onEditProduct,
   onDeleteProduct,
   user,
-  searchTerm = ''
+  searchTerm = '',
+  sortField = '',
+  sortDirection = 'asc',
+  onSortChange
 }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -64,10 +72,6 @@ const ProductTable = ({
     }
   }, [totalPages, currentPage]);
 
-  // Print single product details / label
-  const handlePrintProduct = (row) => {
-    window.print();
-  };
 
   // Helper for stock status calculation
   const getStockStatus = (quality) => {
@@ -89,6 +93,23 @@ const ProductTable = ({
     if (unit === 'படி') return t('padi') || 'படி';
     if (unit === 'pie') return t('pieces') || 'எண்ணிக்கை';
     return unit;
+  };
+
+  const handleSort = (field) => {
+    if (onSortChange) {
+      onSortChange(field);
+    }
+  };
+
+  const renderSortIcon = (field) => {
+    if (sortField !== field) {
+      return <FontAwesomeIcon icon={faSort} className="sort-icon-inactive ms-1" />;
+    }
+    return sortDirection === 'asc' ? (
+      <FontAwesomeIcon icon={faSortUp} className="sort-icon-active ms-1" />
+    ) : (
+      <FontAwesomeIcon icon={faSortDown} className="sort-icon-active ms-1" />
+    );
   };
 
   // 1. Error state
@@ -117,14 +138,16 @@ const ProductTable = ({
           <table className="erp-table">
             <thead>
               <tr>
-                <th style={{ width: '60px' }}>{t('S.No') || 'வ.எண்'}</th>
+                <th style={{ width: '55px' }}>{t('S.No') || 'வ.எண்'}</th>
                 <th>{t('col_product') || 'பொருள்'}</th>
-                <th>{t('col_unit') || 'அலகு'}</th>
+                <th style={{ width: '85px' }}>{t('col_unit') || 'அலகு'}</th>
                 <th className="text-right">{t('col_price') || 'விலை'}</th>
+                <th className="text-right">{t('col_incoming') || 'வரத்து'}</th>
+                <th className="text-right">{t('col_outgoing') || 'விற்பனை'}</th>
                 <th className="text-right">{t('col_stock') || 'இருப்பு'}</th>
-                <th className="text-center">{t('col_stock_status') || 'இருப்பு நிலை'}</th>
+                <th className="text-center" style={{ width: '120px' }}>{t('col_stock_status') || 'நிலை'}</th>
                 <th className="text-right">{t('col_stock_value') || 'மதிப்பு'}</th>
-                <th className="text-right">{t('col_actions') || 'செயல்கள்'}</th>
+                <th className="text-right" style={{ width: '125px' }}>{t('col_actions') || 'செயல்கள்'}</th>
               </tr>
             </thead>
             <tbody>
@@ -132,12 +155,14 @@ const ProductTable = ({
                 <tr key={i} className="skeleton-row">
                   <td><div className="skeleton-box" style={{ width: '25px' }} /></td>
                   <td><div className="skeleton-box" style={{ width: '130px' }} /></td>
-                  <td><div className="skeleton-box" style={{ width: '60px' }} /></td>
+                  <td><div className="skeleton-box" style={{ width: '50px' }} /></td>
+                  <td><div className="skeleton-box ms-auto" style={{ width: '60px' }} /></td>
+                  <td><div className="skeleton-box ms-auto" style={{ width: '60px' }} /></td>
+                  <td><div className="skeleton-box ms-auto" style={{ width: '60px' }} /></td>
+                  <td><div className="skeleton-box ms-auto" style={{ width: '60px' }} /></td>
+                  <td><div className="skeleton-box mx-auto" style={{ width: '80px' }} /></td>
                   <td><div className="skeleton-box ms-auto" style={{ width: '70px' }} /></td>
                   <td><div className="skeleton-box ms-auto" style={{ width: '80px' }} /></td>
-                  <td><div className="skeleton-box mx-auto" style={{ width: '90px' }} /></td>
-                  <td><div className="skeleton-box ms-auto" style={{ width: '75px' }} /></td>
-                  <td><div className="skeleton-box ms-auto" style={{ width: '70px' }} /></td>
                 </tr>
               ))}
             </tbody>
@@ -170,19 +195,53 @@ const ProductTable = ({
 
   return (
     <div className="product-table-container">
-      {/* Desktop View: Full ERP Table */}
+      {/* Desktop View: Full ERP Consolidated Table */}
       <div className="desktop-table-scroll">
         <table className="erp-table">
           <thead>
             <tr>
-              <th style={{ width: '60px' }}>{t('S.No') || 'வ.எண்'}</th>
-              <th>{t('col_product') || 'பொருள்'}</th>
-              <th>{t('col_unit') || 'அலகு'}</th>
-              <th className="text-right">{t('col_price') || 'விலை'}</th>
-              <th className="text-right">{t('col_stock') || 'இருப்பு'}</th>
-              <th className="text-center">{t('col_stock_status') || 'இருப்பு நிலை'}</th>
-              <th className="text-right">{t('col_stock_value') || 'மதிப்பு'}</th>
-              <th className="text-right" style={{ width: '130px' }}>
+              <th style={{ width: '55px' }}>{t('S.No') || 'வ.எண்'}</th>
+              <th className="cursor-pointer" onClick={() => handleSort('name')}>
+                <div className="th-sortable">
+                  <span>{t('col_product') || 'பொருள்'}</span>
+                  {renderSortIcon('name')}
+                </div>
+              </th>
+              <th style={{ width: '85px' }}>{t('col_unit') || 'அலகு'}</th>
+              <th className="text-right cursor-pointer" onClick={() => handleSort('price')}>
+                <div className="th-sortable justify-content-end">
+                  <span>{t('col_price') || 'விலை'}</span>
+                  {renderSortIcon('price')}
+                </div>
+              </th>
+              <th className="text-right cursor-pointer" onClick={() => handleSort('purchases')}>
+                <div className="th-sortable justify-content-end">
+                  <span className="text-blue">{t('col_incoming') || 'வரத்து (கொள்முதல்)'}</span>
+                  {renderSortIcon('purchases')}
+                </div>
+              </th>
+              <th className="text-right cursor-pointer" onClick={() => handleSort('sales')}>
+                <div className="th-sortable justify-content-end">
+                  <span className="text-emerald">{t('col_outgoing') || 'விற்பனை'}</span>
+                  {renderSortIcon('sales')}
+                </div>
+              </th>
+              <th className="text-right cursor-pointer" onClick={() => handleSort('balance')}>
+                <div className="th-sortable justify-content-end">
+                  <span>{t('col_stock') || 'தற்போதைய இருப்பு'}</span>
+                  {renderSortIcon('balance')}
+                </div>
+              </th>
+              <th className="text-center" style={{ width: '120px' }}>
+                {t('col_stock_status') || 'நிலை'}
+              </th>
+              <th className="text-right cursor-pointer" onClick={() => handleSort('valuation')}>
+                <div className="th-sortable justify-content-end">
+                  <span>{t('col_stock_value') || 'மதிப்பு'}</span>
+                  {renderSortIcon('valuation')}
+                </div>
+              </th>
+              <th className="text-right" style={{ width: '125px' }}>
                 {t('col_actions') || 'செயல்கள்'}
               </th>
             </tr>
@@ -190,23 +249,26 @@ const ProductTable = ({
           <tbody>
             {paginatedData.map((row, index) => {
               const serialNo = (currentPage - 1) * pageSize + index + 1;
+              const purchases = parseFloat(row.total_purchase_quality || 0);
+              const sales = parseFloat(row.total_sales_quality || 0);
+              const balance = row.balance !== undefined ? parseFloat(row.balance) : parseFloat(row.quality || 0);
               const price = parseFloat(row.price || 0);
-              const quality = parseFloat(row.quality || 0);
-              const status = getStockStatus(quality);
-              const stockValue = quality > 0 ? (quality * price) : 0;
+              const valuation = row.valuation !== undefined ? parseFloat(row.valuation) : (balance > 0 ? balance * price : 0);
+              const status = getStockStatus(balance);
               const unitText = getUnitDisplay(row.unit);
-              const isMenuOpen = activeMenuCode === row.code;
+              const rowCode = row.code || row.product_code || `prod-${index}`;
+              const isMenuOpen = activeMenuCode === rowCode;
 
               return (
-                <tr key={row.code || index}>
+                <tr key={rowCode}>
                   {/* S.No */}
                   <td className="text-muted font-numeric">{serialNo}</td>
 
                   {/* Product Name & Code */}
                   <td>
                     <div className="product-cell-main">
-                      <span className="product-name-text">{row.name}</span>
-                      <span className="product-code-pill font-numeric">{row.code}</span>
+                      <span className="product-name-text">{row.name || row.product_name}</span>
+                      <span className="product-code-pill font-numeric">{row.code || row.product_code}</span>
                     </div>
                   </td>
 
@@ -220,10 +282,24 @@ const ProductTable = ({
                     {formatRupee(price)}
                   </td>
 
-                  {/* Stock Quantity */}
-                  <td className="text-right font-numeric fw-semibold">
-                    <span className={quality <= 0 ? 'text-danger' : 'text-primary'}>
-                      {quality.toFixed(2)} {row.unit || ''}
+                  {/* Incoming Purchases */}
+                  <td className="text-right font-numeric">
+                    <span className={purchases > 0 ? 'text-blue fw-semibold' : 'text-muted'}>
+                      {purchases > 0 ? `+${purchases.toFixed(2)}` : '0.00'}
+                    </span>
+                  </td>
+
+                  {/* Outgoing Sales */}
+                  <td className="text-right font-numeric">
+                    <span className={sales > 0 ? 'text-emerald fw-semibold' : 'text-muted'}>
+                      {sales > 0 ? `-${sales.toFixed(2)}` : '0.00'}
+                    </span>
+                  </td>
+
+                  {/* Current Balance */}
+                  <td className="text-right font-numeric fw-bold">
+                    <span className={balance <= 0 ? 'text-danger' : balance <= 5 ? 'text-amber' : 'text-primary'}>
+                      {balance.toFixed(2)}
                     </span>
                   </td>
 
@@ -237,7 +313,7 @@ const ProductTable = ({
 
                   {/* Stock Value */}
                   <td className="text-right font-numeric text-muted">
-                    {formatRupee(stockValue)}
+                    {formatRupee(valuation)}
                   </td>
 
                   {/* Actions */}
@@ -256,7 +332,7 @@ const ProductTable = ({
                       <div style={{ position: 'relative' }}>
                         <button
                           className="btn-action-more"
-                          onClick={(e) => toggleActionMenu(row.code, e)}
+                          onClick={(e) => toggleActionMenu(rowCode, e)}
                           title={t('action_more') || 'மேலும்'}
                           aria-label="More actions"
                         >
@@ -291,19 +367,20 @@ const ProductTable = ({
                             <button
                               className="action-dropdown-item"
                               onClick={() => {
-                                handlePrintProduct(row);
+                                navigate('/entries');
                                 setActiveMenuCode(null);
                               }}
                             >
-                              <FontAwesomeIcon icon={faPrint} />
-                              <span>{t('action_print') || 'அச்சிடு'}</span>
+                              <FontAwesomeIcon icon={faCartPlus} />
+                              <span>{t('quick_nav_entries') || 'நாள் பதிவு'}</span>
                             </button>
+
 
                             {user?.role === 'admin' && (
                               <button
                                 className="action-dropdown-item danger"
                                 onClick={() => {
-                                  onDeleteProduct(row.code);
+                                  onDeleteProduct(row.code || row.product_code);
                                   setActiveMenuCode(null);
                                 }}
                               >
@@ -325,20 +402,23 @@ const ProductTable = ({
 
       {/* Mobile View: Genuine Mobile ERP Cards */}
       <div className="mobile-card-list">
-        {paginatedData.map((row) => {
+        {paginatedData.map((row, index) => {
+          const purchases = parseFloat(row.total_purchase_quality || 0);
+          const sales = parseFloat(row.total_sales_quality || 0);
+          const balance = row.balance !== undefined ? parseFloat(row.balance) : parseFloat(row.quality || 0);
           const price = parseFloat(row.price || 0);
-          const quality = parseFloat(row.quality || 0);
-          const status = getStockStatus(quality);
-          const stockValue = quality > 0 ? (quality * price) : 0;
+          const valuation = row.valuation !== undefined ? parseFloat(row.valuation) : (balance > 0 ? balance * price : 0);
+          const status = getStockStatus(balance);
           const unitText = getUnitDisplay(row.unit);
+          const rowCode = row.code || row.product_code || `mob-${index}`;
 
           return (
-            <div key={row.code} className="mobile-product-card">
+            <div key={rowCode} className="mobile-product-card">
               <div className="mobile-card-top">
                 <div className="mobile-card-name-group">
-                  <span className="mobile-card-name">{row.name}</span>
+                  <span className="mobile-card-name">{row.name || row.product_name}</span>
                   <div className="mobile-card-meta">
-                    <span className="erp-badge erp-badge-violet font-numeric">{row.code}</span>
+                    <span className="erp-badge erp-badge-violet font-numeric">{row.code || row.product_code}</span>
                     <span className="unit-badge">{unitText}</span>
                   </div>
                 </div>
@@ -349,21 +429,33 @@ const ProductTable = ({
                 </span>
               </div>
 
-              {/* Financial & Stock Box */}
-              <div className="mobile-card-financials">
+              {/* Financial & Stock Grid (Consolidated metrics) */}
+              <div className="mobile-card-financials-grid">
                 <div className="fin-item">
                   <span className="fin-label">{t('col_price') || 'விலை'}</span>
                   <span className="fin-value font-numeric text-primary">{formatRupee(price)}</span>
                 </div>
                 <div className="fin-item">
-                  <span className="fin-label">{t('col_stock') || 'இருப்பு'}</span>
-                  <span className={`fin-value font-numeric ${quality <= 0 ? 'text-danger' : 'text-success'}`}>
-                    {quality.toFixed(2)} {row.unit || ''}
+                  <span className="fin-label">{t('col_incoming') || 'வரத்து'}</span>
+                  <span className={`fin-value font-numeric ${purchases > 0 ? 'text-blue' : 'text-muted'}`}>
+                    +{purchases.toFixed(2)}
                   </span>
                 </div>
                 <div className="fin-item">
-                  <span className="fin-label">{t('col_stock_value') || 'மதிப்பு'}</span>
-                  <span className="fin-value font-numeric">{formatRupee(stockValue)}</span>
+                  <span className="fin-label">{t('col_outgoing') || 'விற்பனை'}</span>
+                  <span className={`fin-value font-numeric ${sales > 0 ? 'text-emerald' : 'text-muted'}`}>
+                    -{sales.toFixed(2)}
+                  </span>
+                </div>
+                <div className="fin-item">
+                  <span className="fin-label">{t('col_stock') || 'இருப்பு'}</span>
+                  <span className={`fin-value font-numeric fw-bold ${balance <= 0 ? 'text-danger' : balance <= 5 ? 'text-amber' : 'text-primary'}`}>
+                    {balance.toFixed(2)} {row.unit || ''}
+                  </span>
+                </div>
+                <div className="fin-item col-span-2">
+                  <span className="fin-label">{t('col_stock_value') || 'இருப்பு மதிப்பு'}</span>
+                  <span className="fin-value font-numeric text-muted">{formatRupee(valuation)}</span>
                 </div>
               </div>
 

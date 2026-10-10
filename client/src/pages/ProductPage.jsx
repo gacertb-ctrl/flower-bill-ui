@@ -14,10 +14,14 @@ import {
   updateProduct,
   deleteProduct
 } from '../api/productAPI';
+import { fetchStocks } from '../api/stockAPI';
 
 const ProductPage = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+
+  // Date State for Inventory Tracking
+  const [selectedDate, setSelectedDate] = useState(() => new Date());
 
   // API State
   const [productData, setProductData] = useState([]);
@@ -33,34 +37,124 @@ const ProductPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [unitFilter, setUnitFilter] = useState('all');
   const [stockFilter, setStockFilter] = useState('all'); // 'all' | 'sufficient' | 'low' | 'out'
-  const [sortBy, setSortBy] = useState('name'); // 'name' | 'code' | 'price_desc' | 'stock_desc'
+  const [sortBy, setSortBy] = useState('name');
+  const [sortDirection, setSortDirection] = useState('asc');
 
-  // Fetch product list from API
+  // Fetch product list & stock records concurrently and merge them
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchProducts();
-      if (Array.isArray(data)) {
-        setProductData(data);
-      } else if (data && Array.isArray(data.products)) {
-        setProductData(data.products);
-      } else {
-        setProductData([]);
-      }
+      const [prodRes, stockRes] = await Promise.all([
+        fetchProducts().catch(err => {
+          console.error("Error fetching products:", err);
+          return [];
+        }),
+        fetchStocks(selectedDate).catch(err => {
+          console.error("Error fetching stocks for date:", err);
+          return [];
+        })
+      ]);
+
+      const rawProducts = Array.isArray(prodRes) ? prodRes : (prodRes?.products || []);
+      const rawStocks = Array.isArray(stockRes) ? stockRes : [];
+
+      // Create stock lookup map by trimmed code and name
+      const stockMap = {};
+      rawStocks.forEach((s) => {
+        const code = (s.product_code || s.code || '').trim().toUpperCase();
+        const name = (s.product_name || s.name || '').trim();
+        if (code) stockMap[code] = s;
+        if (name && !stockMap[name]) stockMap[name] = s;
+      });
+
+      const seenCodes = new Set();
+      const combined = [];
+
+      // 1. Enrich catalog products with daily stock inward & outward transactions
+      rawProducts.forEach((p) => {
+        const code = (p.code || p.product_code || '').trim().toUpperCase();
+        const name = (p.name || p.product_name || '').trim();
+        if (code) seenCodes.add(code);
+        if (name) seenCodes.add(name);
+
+        const stock = stockMap[code] || stockMap[name];
+        const purchases = parseFloat(stock?.total_purchase_quality || 0);
+        const sales = parseFloat(stock?.total_sales_quality || 0);
+        const balance = stock !== undefined
+          ? (purchases - sales)
+          : parseFloat(p.quality !== undefined ? p.quality : (p.balance || 0));
+        const price = parseFloat(p.price || stock?.price || 0);
+        const unit = p.unit || stock?.unit || 'kg';
+        const valuation = balance > 0 ? balance * price : 0;
+
+        combined.push({
+          ...p,
+          id: p.id || p._id || code,
+          code: p.code || code,
+          name: p.name || name,
+          unit,
+          price,
+          total_purchase_quality: purchases,
+          total_sales_quality: sales,
+          balance,
+          quality: balance, // for backward compatibility
+          valuation
+        });
+      });
+
+      // 2. Include any stock transactions not present in catalog
+      rawStocks.forEach((s) => {
+        const code = (s.product_code || s.code || '').trim().toUpperCase();
+        const name = (s.product_name || s.name || '').trim();
+        if ((code && seenCodes.has(code)) || (name && seenCodes.has(name))) {
+          return;
+        }
+        const purchases = parseFloat(s.total_purchase_quality || 0);
+        const sales = parseFloat(s.total_sales_quality || 0);
+        const balance = purchases - sales;
+        const price = parseFloat(s.price || 0);
+        const unit = s.unit || 'kg';
+        const valuation = balance > 0 ? balance * price : 0;
+
+        combined.push({
+          id: code || name,
+          code: code || s.product_code,
+          name: name || s.product_name,
+          unit,
+          price,
+          total_purchase_quality: purchases,
+          total_sales_quality: sales,
+          balance,
+          quality: balance,
+          valuation
+        });
+      });
+
+      setProductData(combined);
     } catch (err) {
-      console.error("Error fetching product data:", err);
-      setError(t('reports.noData') || 'பொருள் தரவை ஏற்றுவதில் பிழை ஏற்பட்டது');
+      console.error("Error fetching consolidated product & stock data:", err);
+      setError(t('reports.noData') || 'பொருள் மற்றும் இருப்பு தரவை ஏற்றுவதில் பிழை ஏற்பட்டது');
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [selectedDate, t]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // Filtered & Sorted Product List
+  // Handle column header sort clicks
+  const handleSortChange = (field) => {
+    if (sortBy === field) {
+      setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortBy(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Filtered & Sorted Consolidated Product List
   const filteredProducts = useMemo(() => {
     let result = [...productData];
 
@@ -81,35 +175,59 @@ const ProductPage = () => {
 
     // 3. Stock Status Filter
     if (stockFilter === 'sufficient') {
-      result = result.filter(item => parseFloat(item.quality || 0) > 5);
+      result = result.filter(item => parseFloat(item.balance !== undefined ? item.balance : item.quality || 0) > 5);
     } else if (stockFilter === 'low') {
       result = result.filter(item => {
-        const q = parseFloat(item.quality || 0);
-        return q > 0 && q <= 5;
+        const b = parseFloat(item.balance !== undefined ? item.balance : item.quality || 0);
+        return b > 0 && b <= 5;
       });
     } else if (stockFilter === 'out') {
-      result = result.filter(item => parseFloat(item.quality || 0) <= 0);
+      result = result.filter(item => parseFloat(item.balance !== undefined ? item.balance : item.quality || 0) <= 0);
     }
 
     // 4. Sort
     result.sort((a, b) => {
-      if (sortBy === 'name') {
-        return String(a.name || '').localeCompare(String(b.name || ''), 'ta');
-      }
-      if (sortBy === 'code') {
-        return String(a.code || '').localeCompare(String(b.code || ''));
-      }
+      let isDesc = sortDirection === 'desc';
+      let sortKey = sortBy;
+
       if (sortBy === 'price_desc') {
-        return parseFloat(b.price || 0) - parseFloat(a.price || 0);
+        sortKey = 'price';
+        isDesc = true;
+      } else if (sortBy === 'stock_desc') {
+        sortKey = 'balance';
+        isDesc = true;
+      } else if (sortBy === 'purchases_desc') {
+        sortKey = 'purchases';
+        isDesc = true;
+      } else if (sortBy === 'sales_desc') {
+        sortKey = 'sales';
+        isDesc = true;
       }
-      if (sortBy === 'stock_desc') {
-        return parseFloat(b.quality || 0) - parseFloat(a.quality || 0);
+
+      let diff = 0;
+      if (sortKey === 'name') {
+        diff = String(a.name || '').localeCompare(String(b.name || ''), 'ta');
+      } else if (sortKey === 'code') {
+        diff = String(a.code || '').localeCompare(String(b.code || ''));
+      } else if (sortKey === 'price') {
+        diff = parseFloat(a.price || 0) - parseFloat(b.price || 0);
+      } else if (sortKey === 'purchases') {
+        diff = parseFloat(a.total_purchase_quality || 0) - parseFloat(b.total_purchase_quality || 0);
+      } else if (sortKey === 'sales') {
+        diff = parseFloat(a.total_sales_quality || 0) - parseFloat(b.total_sales_quality || 0);
+      } else if (sortKey === 'balance' || sortKey === 'stock') {
+        const balA = parseFloat(a.balance !== undefined ? a.balance : a.quality || 0);
+        const balB = parseFloat(b.balance !== undefined ? b.balance : b.quality || 0);
+        diff = balA - balB;
+      } else if (sortKey === 'valuation') {
+        diff = parseFloat(a.valuation || 0) - parseFloat(b.valuation || 0);
       }
-      return 0;
+
+      return isDesc ? -diff : diff;
     });
 
     return result;
-  }, [productData, searchTerm, unitFilter, stockFilter, sortBy]);
+  }, [productData, searchTerm, unitFilter, stockFilter, sortBy, sortDirection]);
 
   const isFiltered = Boolean(
     searchTerm.trim() || unitFilter !== 'all' || stockFilter !== 'all' || sortBy !== 'name'
@@ -120,6 +238,7 @@ const ProductPage = () => {
     setUnitFilter('all');
     setStockFilter('all');
     setSortBy('name');
+    setSortDirection('asc');
   };
 
   // Submit Handler for Add / Update Modal
@@ -147,7 +266,7 @@ const ProductPage = () => {
         }));
       }
 
-      alert(t(response?.message || (editData ? 'product_saved_success' : 'product_saved_success')));
+      alert(t(response?.message || 'product_saved_success'));
     } catch (error) {
       console.error("Product submit error:", error);
       if (error.response) {
@@ -178,7 +297,7 @@ const ProductPage = () => {
     }
   };
 
-  // Export to CSV with UTF-8 BOM for Excel
+  // Export to CSV with UTF-8 BOM for Excel (Consolidated Columns)
   const handleExportCSV = () => {
     if (filteredProducts.length === 0) {
       alert(t('noDataAvailable') || 'தரவு இல்லை');
@@ -190,17 +309,21 @@ const ProductPage = () => {
       'பொருள் பெயர்',
       'குறியீடு',
       'அலகு',
-      'விலை',
-      'இருப்பு',
+      'விலை (₹)',
+      'இன்றைய வரத்து (கொள்முதல்)',
+      'இன்றைய விற்பனை',
+      'தற்போதைய இருப்பு',
       'இருப்பு நிலை',
-      'இருப்பு மதிப்பு'
+      'இருப்பு மதிப்பு (₹)'
     ];
 
     const rows = filteredProducts.map((p, idx) => {
-      const q = parseFloat(p.quality || 0);
+      const purchases = parseFloat(p.total_purchase_quality || 0);
+      const sales = parseFloat(p.total_sales_quality || 0);
+      const balance = parseFloat(p.balance !== undefined ? p.balance : p.quality || 0);
       const pr = parseFloat(p.price || 0);
-      const statusText = q > 5 ? 'போதுமானது' : (q > 0 ? 'குறைந்த இருப்பு' : 'இருப்பு இல்லை');
-      const val = q > 0 ? (q * pr).toFixed(2) : '0.00';
+      const statusText = balance > 5 ? 'போதுமானது' : (balance > 0 ? 'குறைந்த இருப்பு' : 'இருப்பு இல்லை');
+      const val = balance > 0 ? (balance * pr).toFixed(2) : '0.00';
 
       return [
         idx + 1,
@@ -208,7 +331,9 @@ const ProductPage = () => {
         `"${p.code || ''}"`,
         `"${p.unit || ''}"`,
         pr.toFixed(2),
-        q.toFixed(2),
+        purchases.toFixed(2),
+        sales.toFixed(2),
+        balance.toFixed(2),
         `"${statusText}"`,
         val
       ];
@@ -219,20 +344,19 @@ const ProductPage = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `products_${new Date().toISOString().slice(0, 10)}.csv`);
+    const dateTag = selectedDate instanceof Date ? selectedDate.toISOString().slice(0, 10) : 'all';
+    link.setAttribute('download', `products_stocks_${dateTag}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  // Print records handler
-  const handlePrint = () => {
-    window.print();
-  };
-
   return (
-    <ERPLayout totalProducts={productData.length} breadcrumbCurrent={t('products_title') || 'பொருட்கள்'}>
-      {/* 1. Header with Add, Refresh, Export, Print */}
+    <ERPLayout
+      totalProducts={productData.length}
+      breadcrumbCurrent={t('products_title') || 'பொருட்கள் & இருப்பு'}
+    >
+      {/* 1. Header with Add, Refresh, Export */}
       <ProductHeader
         onAddNew={() => {
           setEditData(null);
@@ -240,17 +364,18 @@ const ProductPage = () => {
         }}
         onRefresh={fetchData}
         onExport={handleExportCSV}
-        onPrint={handlePrint}
         loading={loading}
       />
 
-      {/* 2. Four KPI Metric Cards */}
+      {/* 2. Four Consolidated KPI Metric Cards */}
       <ProductKPIs productData={productData} />
 
-      {/* 3. Filter Bar (Search, Unit, Stock Status, Sort) */}
+      {/* 3. Filter Bar (Search, Date Picker, Unit, Stock Status, Sort) */}
       <ProductFilterBar
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
+        selectedDate={selectedDate}
+        onDateChange={setSelectedDate}
         unitFilter={unitFilter}
         onUnitChange={setUnitFilter}
         stockFilter={stockFilter}
@@ -261,7 +386,7 @@ const ProductPage = () => {
         isFiltered={isFiltered}
       />
 
-      {/* 4. ERP Desktop Table + Responsive Mobile Cards */}
+      {/* 4. ERP Desktop Consolidated Table + Responsive Mobile Cards */}
       <ProductTable
         data={filteredProducts}
         loading={loading}
@@ -275,9 +400,12 @@ const ProductPage = () => {
         onDeleteProduct={handleDeleteProduct}
         user={user}
         searchTerm={searchTerm}
+        sortField={sortBy}
+        sortDirection={sortDirection}
+        onSortChange={handleSortChange}
       />
 
-      {/* 5. Slide-in Quick Detail Drawer */}
+      {/* 5. Slide-in Consolidated Detail Drawer */}
       {drawerProduct && (
         <ProductDetailDrawer
           product={drawerProduct}
@@ -291,7 +419,7 @@ const ProductPage = () => {
         />
       )}
 
-      {/* 6. Add / Edit Product Modal (Preserved existing component) */}
+      {/* 6. Add / Edit Product Modal */}
       <ProductModal
         show={showModal}
         onHide={() => {

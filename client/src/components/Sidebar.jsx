@@ -51,13 +51,8 @@ function Sidebar() {
           <p className="section-title">{t('inventory_menu') || 'INVENTORY'}</p>
           <ul className="nav-list">
             <li>
-              <Link className={`sidebar-link ${isActive('/products')}`} to="/products">
-                <FontAwesomeIcon icon={faListCheck} className="sidebar-icon" /> {t('product')}
-              </Link>
-            </li>
-            <li>
-              <Link className={`sidebar-link ${isActive('/stocks')}`} to="/stocks">
-                <FontAwesomeIcon icon={faFileLines} className="sidebar-icon" /> {t('stocks')}
+              <Link className={`sidebar-link ${isActive('/products') || isActive('/stocks')}`} to="/products">
+                <FontAwesomeIcon icon={faListCheck} className="sidebar-icon" /> {t('products_stocks_title') || 'பொருட்கள் & இருப்பு'}
               </Link>
             </li>
           </ul>

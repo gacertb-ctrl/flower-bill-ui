@@ -246,6 +246,7 @@ const lang = {
   supplier_deleted_success: "Supplier deleted successfully",
   // 2026 Product ERP keys
   products_title: "Products",
+  products_stocks_title: "Products & Stock",
   product_management: "Product Management",
   product_management_desc: "Flower varieties, pricing, and stock management",
   add_new_product: "+ New Product",

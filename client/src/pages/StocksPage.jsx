@@ -224,11 +224,6 @@ const StocksPage = () => {
     document.body.removeChild(link);
   };
 
-  // Print function
-  const handlePrint = () => {
-    window.print();
-  };
-
   return (
     <ERPLayout
       totalStocks={enrichedStocks.length}
@@ -240,7 +235,6 @@ const StocksPage = () => {
         <StockHeader
           onRefresh={() => loadData(selectedDate, true)}
           onExport={handleExportCSV}
-          onPrint={handlePrint}
           refreshing={refreshing}
         />
 

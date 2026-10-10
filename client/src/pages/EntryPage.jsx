@@ -29,10 +29,11 @@ const EntryPage = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
 
-  // Date State - Defaults to 2026-02-18 (latest active market transaction date) or query param
+  // Date State - Defaults to today's current date or query param
   const [date, setDate] = useState(() => {
     const params = new URLSearchParams(window.location.search);
-    return params.get('date') || '2026-02-18';
+    const today = new Date().toISOString().split('T')[0];
+    return params.get('date') || today;
   });
   const [tamilDateInfo, setTamilDateInfo] = useState({
     tamil_date: '',

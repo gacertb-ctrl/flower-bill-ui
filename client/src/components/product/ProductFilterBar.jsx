@@ -12,6 +12,8 @@ import './ProductControls.css';
 const ProductFilterBar = ({
   searchTerm,
   onSearchChange,
+  selectedDate,
+  onDateChange,
   unitFilter,
   onUnitChange,
   stockFilter,
@@ -23,6 +25,18 @@ const ProductFilterBar = ({
 }) => {
   const { t } = useTranslation();
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+
+  const dateStr = selectedDate instanceof Date
+    ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
+    : selectedDate || '';
+
+  const handleDateChange = (e) => {
+    const val = e.target.value;
+    if (val && onDateChange) {
+      const [year, month, day] = val.split('-').map(Number);
+      onDateChange(new Date(year, month - 1, day));
+    }
+  };
 
   return (
     <div className="product-filter-container">
@@ -48,6 +62,19 @@ const ProductFilterBar = ({
             </button>
           )}
         </div>
+
+        {/* Date Selector */}
+        {onDateChange && (
+          <div className="filter-date-wrapper" title={t('filter_by_date') || 'தேதி வாரியாக இருப்பு'}>
+            <input
+              type="date"
+              className="filter-date-input font-numeric"
+              value={dateStr}
+              onChange={handleDateChange}
+              aria-label="Filter by date"
+            />
+          </div>
+        )}
 
         {/* Unit Dropdown */}
         <select
@@ -87,6 +114,8 @@ const ProductFilterBar = ({
           <option value="code">குறியீடு எண்</option>
           <option value="price_desc">விலை (அதிகம் → குறைவு)</option>
           <option value="stock_desc">இருப்பு (அதிகம் → குறைவு)</option>
+          <option value="purchases_desc">கொள்முதல் (அதிகம் → குறைவு)</option>
+          <option value="sales_desc">விற்பனை (அதிகம் → குறைவு)</option>
         </select>
 
         {/* Reset Button */}
@@ -147,6 +176,20 @@ const ProductFilterBar = ({
           </div>
 
           <div className="bottom-sheet-body">
+            {onDateChange && (
+              <div>
+                <label className="form-label small fw-bold text-muted mb-1">
+                  {t('date') || 'தேதி'}
+                </label>
+                <input
+                  type="date"
+                  className="filter-select w-100 font-numeric"
+                  value={dateStr}
+                  onChange={handleDateChange}
+                />
+              </div>
+            )}
+
             <div>
               <label className="form-label small fw-bold text-muted mb-1">
                 {t('col_unit') || 'அலகு'}
@@ -191,6 +234,8 @@ const ProductFilterBar = ({
                 <option value="code">குறியீடு எண்</option>
                 <option value="price_desc">விலை (அதிகம் → குறைவு)</option>
                 <option value="stock_desc">இருப்பு (அதிகம் → குறைவு)</option>
+                <option value="purchases_desc">கொள்முதல் (அதிகம் → குறைவு)</option>
+                <option value="sales_desc">விற்பனை (அதிகம் → குறைவு)</option>
               </select>
             </div>
 

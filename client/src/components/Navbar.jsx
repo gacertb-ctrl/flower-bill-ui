@@ -48,7 +48,6 @@ function Navbar() {
                 { path: '/products', label: 'product' },
                 { path: '/entries', label: 'entry' },
                 { path: '/report', label: 'report' },
-                { path: '/stocks', label: 'stocks' },
                 { path: '/debit-credit', label: 'debitCredit' },
                 { path: '/settings', label: 'settings' },
               ].map((item) => (
