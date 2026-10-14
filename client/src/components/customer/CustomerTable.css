@@ -52,6 +52,23 @@
   background-color: #F8FAFC;
 }
 
+/* Interactive Clickable Table Row & Active Selection */
+.erp-table tbody tr.clickable-row {
+  cursor: pointer;
+}
+
+.erp-table tbody tr.clickable-row:hover td {
+  background-color: #F5F3FF;
+}
+
+.erp-table tbody tr.row-selected td {
+  background-color: #EDE9FE !important;
+}
+
+.erp-table tbody tr.row-selected td:first-child {
+  border-left: 3px solid #6D28D9;
+}
+
 .erp-table tr:last-child td {
   border-bottom: none;
 }
