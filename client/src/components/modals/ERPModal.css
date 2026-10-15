@@ -1,0 +1,428 @@
+/* ERP Modern Modal Design System (2026 ERP Design Standards) */
+
+/* Ensure all modern modals appear cleanly above Detail Drawers (z-index: 1100) */
+.modal.erp-modal-root,
+.modal#customerSupplierModal,
+.modal#productModal {
+  z-index: 1250 !important;
+}
+
+.modal-backdrop {
+  z-index: 1240 !important;
+  background-color: rgba(15, 23, 42, 0.6) !important;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Modal Dialog Sizing & Placement */
+.erp-modern-modal .modal-dialog {
+  max-width: 640px;
+  margin: 1.75rem auto;
+}
+
+.erp-modern-modal-wide .modal-dialog {
+  max-width: 720px;
+}
+
+/* Modal Surface */
+.erp-modern-modal .modal-content {
+  border: 1px solid var(--border, #E5E7EB) !important;
+  border-radius: 1.25rem !important;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25), 0 10px 15px -3px rgba(15, 23, 42, 0.1) !important;
+  background-color: #FFFFFF !important;
+  overflow: hidden;
+  animation: erpModalZoom 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes erpModalZoom {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Modal Header with Entity-Specific Theming */
+.erp-modal-header {
+  padding: 1.25rem 1.5rem !important;
+  border-bottom: 1px solid #F1F5F9 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  position: relative;
+}
+
+.erp-modal-header.theme-customer {
+  border-top: 4px solid #6D28D9 !important;
+  background: linear-gradient(180deg, rgba(109, 40, 217, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+}
+
+.erp-modal-header.theme-supplier {
+  border-top: 4px solid #2563EB !important;
+  background: linear-gradient(180deg, rgba(37, 99, 235, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+}
+
+.erp-modal-header.theme-product {
+  border-top: 4px solid #059669 !important;
+  background: linear-gradient(180deg, rgba(5, 150, 105, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+}
+
+.erp-modal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.erp-modal-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.erp-modal-header.theme-customer .erp-modal-icon-box {
+  background-color: #EDE9FE;
+  color: #6D28D9;
+}
+
+.erp-modal-header.theme-supplier .erp-modal-icon-box {
+  background-color: #DBEAFE;
+  color: #2563EB;
+}
+
+.erp-modal-header.theme-product .erp-modal-icon-box {
+  background-color: #D1FAE5;
+  color: #059669;
+}
+
+.erp-modal-title-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.erp-modal-title {
+  font-size: 1.125rem !important;
+  font-weight: 700 !important;
+  color: #1F2937 !important;
+  margin: 0 !important;
+  line-height: 1.3 !important;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.erp-modal-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.erp-modal-header.theme-customer .erp-modal-badge {
+  background-color: #EDE9FE;
+  color: #6D28D9;
+}
+
+.erp-modal-header.theme-supplier .erp-modal-badge {
+  background-color: #DBEAFE;
+  color: #2563EB;
+}
+
+.erp-modal-header.theme-product .erp-modal-badge {
+  background-color: #D1FAE5;
+  color: #059669;
+}
+
+.erp-modal-subtitle {
+  font-size: 0.8125rem;
+  color: #6B7280;
+  margin-top: 0.15rem;
+}
+
+/* Close button */
+.erp-modal-close-btn {
+  background: #F1F5F9;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 0.875rem;
+}
+
+.erp-modal-close-btn:hover {
+  background: #E2E8F0;
+  color: #0F172A;
+  transform: rotate(90deg);
+}
+
+/* Modal Body */
+.erp-modal-body {
+  padding: 1.5rem !important;
+  background-color: #FFFFFF;
+}
+
+/* Modal Form Layout */
+.erp-modal-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.125rem 1rem;
+}
+
+.erp-modal-form-grid .col-span-2 {
+  grid-column: span 2;
+}
+
+.erp-modal-form-grid .col-span-1 {
+  grid-column: span 1;
+}
+
+/* Form Field */
+.erp-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.erp-form-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0;
+}
+
+.erp-form-label .label-ta {
+  font-weight: 600;
+  color: #1F2937;
+}
+
+.erp-form-label .label-en {
+  font-weight: 400;
+  color: #6B7280;
+  font-size: 0.75rem;
+  margin-left: 0.25rem;
+}
+
+.erp-form-label .required-star {
+  color: #DC2626;
+  margin-left: 0.2rem;
+}
+
+.erp-form-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.erp-form-input,
+.erp-form-select,
+.erp-form-textarea {
+  width: 100%;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  padding: 0.625rem 0.875rem;
+  color: #1F2937;
+  background-color: #FFFFFF;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.erp-form-input:focus,
+.erp-form-select:focus,
+.erp-form-textarea:focus {
+  outline: none;
+  border-color: #6D28D9;
+  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.12);
+  background-color: #FFFFFF;
+}
+
+.erp-modal-header.theme-supplier ~ .erp-modal-body .erp-form-input:focus,
+.erp-modal-header.theme-supplier ~ .erp-modal-body .erp-form-select:focus,
+.erp-modal-header.theme-supplier ~ .erp-modal-body .erp-form-textarea:focus {
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.erp-modal-header.theme-product ~ .erp-modal-body .erp-form-input:focus,
+.erp-modal-header.theme-product ~ .erp-modal-body .erp-form-select:focus,
+.erp-modal-header.theme-product ~ .erp-modal-body .erp-form-textarea:focus {
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12);
+}
+
+.erp-form-input:disabled {
+  background-color: #F8FAFC;
+  color: #64748B;
+  border-color: #E2E8F0;
+  cursor: not-allowed;
+  font-weight: 500;
+}
+
+.erp-form-input-lock {
+  position: absolute;
+  right: 0.85rem;
+  font-size: 0.8rem;
+  color: #94A3B8;
+  pointer-events: none;
+}
+
+.erp-form-addon-left {
+  position: absolute;
+  left: 0.85rem;
+  font-weight: 600;
+  color: #64748B;
+  font-size: 0.9rem;
+  pointer-events: none;
+}
+
+.erp-form-input.has-addon-left {
+  padding-left: 2rem;
+}
+
+.erp-form-addon-right {
+  position: absolute;
+  right: 0.85rem;
+  font-weight: 600;
+  color: #64748B;
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+.erp-form-input.has-addon-right {
+  padding-right: 2.2rem;
+}
+
+.erp-form-textarea {
+  min-height: 85px;
+  resize: vertical;
+}
+
+/* Modal Footer */
+.erp-modal-footer {
+  padding: 1rem 1.5rem !important;
+  background-color: #F8FAFC !important;
+  border-top: 1px solid #E2E8F0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 0.75rem !important;
+}
+
+.btn-modal-cancel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.625rem 1.15rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #475569;
+  background-color: #FFFFFF;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-modal-cancel:hover {
+  background-color: #F1F5F9;
+  color: #0F172A;
+  border-color: #94A3B8;
+}
+
+.btn-modal-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.35rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 9px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  transition: all 0.15s ease;
+}
+
+.btn-modal-submit.theme-customer {
+  background-color: #6D28D9;
+  box-shadow: 0 2px 8px rgba(109, 40, 217, 0.3);
+}
+
+.btn-modal-submit.theme-customer:hover:not(:disabled) {
+  background-color: #5B21B6;
+  transform: translateY(-1px);
+}
+
+.btn-modal-submit.theme-supplier {
+  background-color: #2563EB;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.btn-modal-submit.theme-supplier:hover:not(:disabled) {
+  background-color: #1D4ED8;
+  transform: translateY(-1px);
+}
+
+.btn-modal-submit.theme-product {
+  background-color: #059669;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+}
+
+.btn-modal-submit.theme-product:hover:not(:disabled) {
+  background-color: #047857;
+  transform: translateY(-1px);
+}
+
+.btn-modal-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+  .erp-modal-form-grid {
+    grid-template-columns: 1fr;
+    gap: 0.875rem;
+  }
+
+  .erp-modal-form-grid .col-span-1,
+  .erp-modal-form-grid .col-span-2 {
+    grid-column: span 1;
+  }
+
+  .erp-modern-modal .modal-dialog {
+    margin: 0.75rem;
+  }
+
+  .erp-modal-header {
+    padding: 1rem 1.25rem !important;
+  }
+
+  .erp-modal-body {
+    padding: 1.25rem !important;
+  }
+
+  .erp-modal-footer {
+    padding: 0.875rem 1.25rem !important;
+  }
+}
