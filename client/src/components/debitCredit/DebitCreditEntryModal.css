@@ -1,4 +1,7 @@
 /* DebitCreditEntryModal.css - 2026 ERP Modern Transaction Entry Modal */
+.modal.erp-financial-modal {
+  z-index: 1250 !important;
+}
 
 .erp-financial-modal .modal-content {
   border: 1px solid var(--border-subtle, #E5E7EB);

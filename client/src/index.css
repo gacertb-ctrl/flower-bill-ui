@@ -184,3 +184,12 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
+/* Global Modal & Backdrop Stacking Order - Modals always sit above backdrops and drawers */
+.modal {
+  z-index: 1250 !important;
+}
+
+.modal-backdrop {
+  z-index: 1240 !important;
+}
+

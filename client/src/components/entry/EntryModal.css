@@ -1,4 +1,8 @@
 /* EntryModal.css - 2026 ERP Fast Billing Transaction Modal */
+.modal.erp-transaction-modal {
+  z-index: 1250 !important;
+}
+
 .erp-transaction-modal .modal-content {
   border-radius: var(--radius-xl, 1rem);
   border: none;
