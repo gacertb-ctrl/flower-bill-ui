@@ -261,6 +261,7 @@ const lang = {
     "supplier_deleted_success": "சப்ளையர் வெற்றிகரமாக நீக்கப்பட்டது",
     // 2026 Product ERP keys
     "products_title": "பொருட்கள்",
+    "products_and_stock_title": "பொருட்கள் & இருப்பு",
     "products_stocks_title": "பொருட்கள் & இருப்பு",
     "product_management": "பொருள் மேலாண்மை",
     "product_management_desc": "பூ வகைகள், விலை மற்றும் இருப்பு மேலாண்மை",
@@ -524,7 +525,11 @@ const lang = {
     "settings_staff_deleted": "பணியாளர் நீக்கப்பட்டார்",
     "settings_delete_staff_confirm": "இந்த பணியாளரை நிச்சயமாக நீக்க விரும்புகிறீர்களா?",
     "calendar_settings": "நாட்காட்டி விருப்பத்தேர்வு",
-    "staff_list": "செயலில் உள்ள பணியாளர்கள்"
+    "staff_list": "செயலில் உள்ள பணியாளர்கள்",
+    "summary_total_items": "மொத்த உருப்படிகள்",
+    "summary_total_qty": "மொத்த அளவு",
+    "summary_total_purchase": "மொத்த கொள்முதல்",
+    "summary_total_sales": "மொத்த விற்பனை"
 };
 
 export default lang;

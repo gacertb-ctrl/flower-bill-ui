@@ -10,6 +10,31 @@ if (!localStorage.getItem('authToken')) {
   localStorage.setItem('authToken', defaultToken);
 }
 
+// Global helper: Clicking anywhere on a date input (or its immediate icon/wrapper) opens the date picker
+document.addEventListener('click', (e) => {
+  const target = e.target;
+  let dateInput = null;
+
+  if (target instanceof HTMLInputElement && target.type === 'date') {
+    dateInput = target;
+  } else if (target && typeof target.closest === 'function') {
+    const parentContainer = target.closest(
+      '.erp-gregorian-date-wrap, .welcome-date-badge, .filter-date-wrapper, .report-date-filter-wrap, .erp-dc-date-input, .report-date-input, .date-filter-box, .date-range-filter'
+    );
+    if (parentContainer) {
+      dateInput = parentContainer.querySelector('input[type="date"]');
+    }
+  }
+
+  if (dateInput && !dateInput.disabled && typeof dateInput.showPicker === 'function') {
+    try {
+      dateInput.showPicker();
+    } catch (err) {
+      // Ignore if browser already handled or blocked
+    }
+  }
+});
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>

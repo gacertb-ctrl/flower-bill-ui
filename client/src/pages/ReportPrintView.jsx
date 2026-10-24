@@ -126,6 +126,47 @@ const ReportPrintView = () => {
                     @media print {
                         @page { size: A4 portrait; margin: 0; }
                         .page-break { page-break-after: always; }
+                        .no-print, .no-print * { display: none !important; }
+                    }
+                    .no-print-toolbar {
+                        position: fixed;
+                        top: 15px;
+                        right: 20px;
+                        z-index: 9999;
+                        display: flex;
+                        gap: 10px;
+                        background: rgba(255, 255, 255, 0.95);
+                        padding: 8px 12px;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                        border: 1px solid #dee2e6;
+                    }
+                    .no-print-btn {
+                        padding: 6px 14px;
+                        font-size: 13px;
+                        font-weight: 600;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 6px;
+                        border: none;
+                        transition: all 0.2s;
+                    }
+                    .no-print-btn-primary {
+                        background-color: #6D28D9;
+                        color: #fff;
+                    }
+                    .no-print-btn-primary:hover {
+                        background-color: #5B21B6;
+                    }
+                    .no-print-btn-secondary {
+                        background-color: #f1f5f9;
+                        color: #334155;
+                        border: 1px solid #cbd5e1;
+                    }
+                    .no-print-btn-secondary:hover {
+                        background-color: #e2e8f0;
                     }
                     .bill-box { 
                         border: 1px solid #000; 
@@ -146,6 +187,22 @@ const ReportPrintView = () => {
                         height: auto;
                     }
                 `}</style>
+                <div className="no-print no-print-toolbar">
+                    <button
+                        type="button"
+                        className="no-print-btn no-print-btn-primary"
+                        onClick={() => window.print()}
+                    >
+                        🖨️ {t('print') || 'அச்சிடு / Print'}
+                    </button>
+                    <button
+                        type="button"
+                        className="no-print-btn no-print-btn-secondary"
+                        onClick={() => window.close()}
+                    >
+                        ✕ {t('close') || 'மூடு / Close'}
+                    </button>
+                </div>
                 {pageGroups.map((group, gIdx) => (
                     <div key={gIdx} className="page-break p-3 container-fluid">
                         <div className="row g-2">
@@ -269,9 +326,66 @@ const ReportPrintView = () => {
                         html, body { width: 210mm; min-height: 297mm; }
                         .page { margin: 2px; page-break-after: always; width: 100%; display: flex; flex-wrap: wrap; }
                         @page { size: A4 portrait; margin: 0; }
+                        .no-print, .no-print * { display: none !important; }
+                    }
+                    .no-print-toolbar {
+                        position: fixed;
+                        top: 15px;
+                        right: 20px;
+                        z-index: 9999;
+                        display: flex;
+                        gap: 10px;
+                        background: rgba(255, 255, 255, 0.95);
+                        padding: 8px 12px;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                        border: 1px solid #dee2e6;
+                    }
+                    .no-print-btn {
+                        padding: 6px 14px;
+                        font-size: 13px;
+                        font-weight: 600;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 6px;
+                        border: none;
+                        transition: all 0.2s;
+                    }
+                    .no-print-btn-primary {
+                        background-color: #6D28D9;
+                        color: #fff;
+                    }
+                    .no-print-btn-primary:hover {
+                        background-color: #5B21B6;
+                    }
+                    .no-print-btn-secondary {
+                        background-color: #f1f5f9;
+                        color: #334155;
+                        border: 1px solid #cbd5e1;
+                    }
+                    .no-print-btn-secondary:hover {
+                        background-color: #e2e8f0;
                     }
                     td { padding: 0px !important; }
                 `}</style>
+                <div className="no-print no-print-toolbar">
+                    <button
+                        type="button"
+                        className="no-print-btn no-print-btn-primary"
+                        onClick={() => window.print()}
+                    >
+                        🖨️ {t('print') || 'அச்சிடு / Print'}
+                    </button>
+                    <button
+                        type="button"
+                        className="no-print-btn no-print-btn-secondary"
+                        onClick={() => window.close()}
+                    >
+                        ✕ {t('close') || 'மூடு / Close'}
+                    </button>
+                </div>
                 <div>
                     {pageGroups.map((group, groupIndex) => (
                         <div key={groupIndex} className="page row d-flex justify-content-center">

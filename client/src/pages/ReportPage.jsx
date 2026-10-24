@@ -10,6 +10,7 @@ import ReportLedgerTable from '../components/reports/ReportLedgerTable';
 import { getReportSummary, getTamilMonths, updateSupplierOD } from '../api/reportAPI.jsx';
 import { fetchTamilDate } from '../api/entryAPI';
 import { getWhatsAppStatus, sendReportWhatsApp } from '../api/whatsappAPI';
+import { getCurrentDate, getCurrentYear } from '../utils/dateUtils';
 import './ReportPage.css';
 
 const ReportPage = () => {
@@ -19,9 +20,9 @@ const ReportPage = () => {
   const queryParams = new URLSearchParams(window.location.search);
   const initialPeriod = queryParams.get('period') || 'date';
   const initialType = queryParams.get('type') || 'purchase';
-  const initialDate = queryParams.get('date') || '2024-10-30';
+  const initialDate = queryParams.get('date') || getCurrentDate();
   const initialMonth = queryParams.get('month') || 'Aippasi';
-  const initialYear = parseInt(queryParams.get('year'), 10) || 2024;
+  const initialYear = parseInt(queryParams.get('year'), 10) || getCurrentYear();
 
   const [period, setPeriod] = useState(initialPeriod);
   const [reportType, setReportType] = useState(initialType);

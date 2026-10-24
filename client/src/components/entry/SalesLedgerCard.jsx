@@ -368,17 +368,17 @@ const SalesLedgerCard = ({
           {/* Table Summary Footer */}
           <div className="erp-ledger-summary-footer">
             <div className="summary-col">
-              <span className="summary-label">மொத்த உருப்படிகள்:</span>
+              <span className="summary-label">{t('summary_total_items') || 'மொத்த உருப்படிகள்'}:</span>
               <strong className="summary-val font-numeric">{filteredData.length}</strong>
             </div>
             <div className="summary-col">
-              <span className="summary-label">மொத்த அளவு:</span>
+              <span className="summary-label">{t('summary_total_qty') || 'மொத்த அளவு'}:</span>
               <strong className="summary-val font-numeric text-emerald">
-                {totalQty.toFixed(2)} kg/அலகு
+                {totalQty.toFixed(2)} {t('unit') || 'அலகு'}
               </strong>
             </div>
             <div className="summary-col text-end">
-              <span className="summary-label">மொத்த விற்பனை:</span>
+              <span className="summary-label">{t('summary_total_sales') || 'மொத்த விற்பனை'}:</span>
               <strong className="summary-val font-numeric total-amount-val text-emerald">
                 {formatRupee(totalAmount)}
               </strong>

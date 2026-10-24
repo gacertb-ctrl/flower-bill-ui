@@ -246,6 +246,7 @@ const lang = {
   supplier_deleted_success: "Supplier deleted successfully",
   // 2026 Product ERP keys
   products_title: "Products",
+  products_and_stock_title: "Products & Stock",
   products_stocks_title: "Products & Stock",
   product_management: "Product Management",
   product_management_desc: "Flower varieties, pricing, and stock management",
@@ -509,7 +510,11 @@ const lang = {
   settings_staff_deleted: "Staff member deleted",
   settings_delete_staff_confirm: "Are you sure you want to delete this staff user?",
   calendar_settings: "Calendar Preferences",
-  staff_list: "Active Staff Members"
+  staff_list: "Active Staff Members",
+  summary_total_items: "Total Items",
+  summary_total_qty: "Total Quantity",
+  summary_total_purchase: "Total Purchase",
+  summary_total_sales: "Total Sales"
 };
 
 export default lang;

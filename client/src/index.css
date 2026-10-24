@@ -193,3 +193,12 @@ code {
   z-index: 1240 !important;
 }
 
+/* Ensure all date inputs and their containers indicate clickability */
+input[type="date"] {
+  cursor: pointer !important;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer !important;
+}
+
