@@ -28,9 +28,24 @@ const ERPLayout = ({ children, totalCustomers = 0, totalSuppliers = 0, totalProd
   const location = useLocation();
 
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    return localStorage.getItem('erp_sidebar_collapsed') === 'true';
+  });
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem('erp_theme') === 'dark';
   });
+
+  const toggleSidebar = () => {
+    if (window.innerWidth <= 991) {
+      setMobileOpen(prev => !prev);
+    } else {
+      setSidebarCollapsed(prev => {
+        const next = !prev;
+        localStorage.setItem('erp_sidebar_collapsed', String(next));
+        return next;
+      });
+    }
+  };
 
   const toggleDarkMode = () => {
     const nextMode = !isDarkMode;
@@ -125,10 +140,10 @@ const ERPLayout = ({ children, totalCustomers = 0, totalSuppliers = 0, totalProd
         aria-hidden="true"
       />
 
-      {/* Royal Violet Sidebar (Desktop 250px) */}
-      <aside className={`erp-sidebar ${mobileOpen ? 'mobile-open' : ''}`}>
+      {/* Royal Violet Sidebar (Desktop 250px / Collapsed 72px) */}
+      <aside className={`erp-sidebar ${mobileOpen ? 'mobile-open' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="erp-sidebar-brand">
-          <div className="erp-brand-icon">
+          <div className="erp-brand-icon" onClick={toggleSidebar} style={{ cursor: 'pointer' }} title={sidebarCollapsed ? (t('expand_menu') || 'மெனுவை திற') : (t('collapse_menu') || 'மெனுவை மூடு')}>
             <FontAwesomeIcon icon={faBoxesStacked} />
           </div>
           <div className="erp-brand-text">
@@ -152,14 +167,16 @@ const ERPLayout = ({ children, totalCustomers = 0, totalSuppliers = 0, totalProd
             const isActive = item.path === '/products'
               ? (location.pathname === '/products' || location.pathname === '/stocks')
               : location.pathname === item.path;
+            const labelText = t(item.labelKey) || item.defaultLabel;
             return (
               <Link
                 key={item.path}
                 to={item.path}
                 className={`erp-nav-item ${isActive ? 'active' : ''}`}
+                title={sidebarCollapsed ? labelText : undefined}
               >
                 <FontAwesomeIcon icon={item.icon} className="erp-nav-icon" />
-                <span>{t(item.labelKey) || item.defaultLabel}</span>
+                <span className="erp-nav-label">{labelText}</span>
                 {item.badge && <span className="erp-nav-badge">{item.badge}</span>}
               </Link>
             );
@@ -168,7 +185,7 @@ const ERPLayout = ({ children, totalCustomers = 0, totalSuppliers = 0, totalProd
 
         {/* Sidebar Footer User Info */}
         <div className="erp-sidebar-footer">
-          <div className="erp-user-info">
+          <div className="erp-user-info" title={`${user?.name || user?.username || 'நிர்வாகி'} (${user?.role || 'Admin'})`}>
             <div className="erp-user-avatar">
               {(user?.name || user?.username || 'A')[0].toUpperCase()}
             </div>
@@ -189,14 +206,15 @@ const ERPLayout = ({ children, totalCustomers = 0, totalSuppliers = 0, totalProd
       </aside>
 
       {/* Main Workspace Area */}
-      <div className="erp-main-area">
+      <div className={`erp-main-area ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         {/* Compact Top Header */}
         <header className="erp-top-header">
           <div className="erp-header-left">
             <button
-              className="erp-mobile-menu-toggle"
-              onClick={() => setMobileOpen(true)}
-              aria-label="Open navigation menu"
+              className="erp-sidebar-toggle-btn"
+              onClick={toggleSidebar}
+              title={sidebarCollapsed ? (t('expand_menu') || 'மெனுவை திற') : (t('collapse_menu') || 'மெனுவை மூடு')}
+              aria-label="Toggle navigation menu"
             >
               <FontAwesomeIcon icon={faBars} />
             </button>

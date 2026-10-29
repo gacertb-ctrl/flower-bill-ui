@@ -21,7 +21,8 @@
   left: 0;
   z-index: 1000;
   box-shadow: 2px 0 10px rgba(109, 40, 217, 0.15);
-  transition: transform 0.25s ease-in-out;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-x: hidden;
 }
 
 .erp-sidebar-brand {
@@ -226,15 +227,25 @@
   gap: 1rem;
 }
 
+.erp-sidebar-toggle-btn,
 .erp-mobile-menu-toggle {
-  display: none;
   background: none;
   border: none;
   font-size: 1.15rem;
   color: var(--text-primary);
   cursor: pointer;
-  padding: 0.375rem;
+  padding: 0.375rem 0.5rem;
   border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.erp-sidebar-toggle-btn:hover,
+.erp-mobile-menu-toggle:hover {
+  background-color: var(--border-subtle);
+  color: var(--primary);
 }
 
 .erp-breadcrumb {
@@ -393,10 +404,57 @@
   font-size: 1.05rem;
 }
 
+/* Desktop Collapsed Sidebar Styles */
+@media (min-width: 992px) {
+  .erp-sidebar.collapsed {
+    width: 72px;
+  }
+
+  .erp-sidebar.collapsed .erp-brand-text,
+  .erp-sidebar.collapsed .erp-nav-section-title,
+  .erp-sidebar.collapsed .erp-nav-label,
+  .erp-sidebar.collapsed .erp-nav-badge,
+  .erp-sidebar.collapsed .erp-user-details {
+    display: none !important;
+  }
+
+  .erp-sidebar.collapsed .erp-sidebar-brand {
+    justify-content: center;
+    padding: 1.25rem 0.5rem 1rem;
+  }
+
+  .erp-sidebar.collapsed .erp-nav-item {
+    justify-content: center;
+    padding: 0.75rem 0;
+    gap: 0;
+  }
+
+  .erp-sidebar.collapsed .erp-nav-icon {
+    font-size: 1.15rem;
+    width: auto;
+  }
+
+  .erp-sidebar.collapsed .erp-sidebar-footer {
+    justify-content: center;
+    padding: 0.75rem 0.5rem;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .erp-sidebar.collapsed .erp-user-info {
+    justify-content: center;
+  }
+
+  .erp-main-area.sidebar-collapsed {
+    margin-left: 72px;
+  }
+}
+
 /* Responsive Media Queries */
 @media (max-width: 991px) {
   .erp-sidebar {
     transform: translateX(-100%);
+    width: 250px !important;
   }
 
   .erp-sidebar.mobile-open {
@@ -407,8 +465,9 @@
     display: block;
   }
 
-  .erp-main-area {
-    margin-left: 0;
+  .erp-main-area,
+  .erp-main-area.sidebar-collapsed {
+    margin-left: 0 !important;
     padding-bottom: 65px; /* Space for mobile bottom nav */
   }
 
@@ -433,3 +492,4 @@
     display: none; /* Hide on compact mobile screens */
   }
 }
+

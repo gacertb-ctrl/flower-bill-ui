@@ -514,7 +514,9 @@ const lang = {
   summary_total_items: "Total Items",
   summary_total_qty: "Total Quantity",
   summary_total_purchase: "Total Purchase",
-  summary_total_sales: "Total Sales"
+  summary_total_sales: "Total Sales",
+  expand_menu: "Open Menu",
+  collapse_menu: "Close Menu"
 };
 
 export default lang;

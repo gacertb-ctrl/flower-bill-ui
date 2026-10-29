@@ -61,7 +61,7 @@ const ReportPrintView = () => {
                                 if (isMounted) window.print();
                             }, 1500);
                         }
-                    } 
+                    }
                     setLoading(false);
                 }
             } catch (error) {
@@ -401,7 +401,7 @@ const ReportPrintView = () => {
                                             <div className="col-12" style={{ borderBottom: '1px solid black' }}>
                                                 <div className="row text-center">
                                                     <div className="col-4">
-                                                        <img src="/logo192.png" height="50" width="50" alt="Logo" style={{ opacity: 0.5 }} />
+                                                        <img src="/amman.jpg" height="50" width="50" alt="Logo" style={{ opacity: 0.5 }} />
                                                     </div>
                                                     <div className="col-8">
                                                         <h4>{t('ganthimathi')}</h4>
@@ -479,17 +479,17 @@ const ReportPrintView = () => {
                                                         <tr style={{ borderTop: '1px solid black', borderLeft: 0 }}>
                                                             <td colSpan="2" className="text-start border-end border-dark" style={{ borderLeft: 0 }}>{t('closing_balance')}</td>
                                                             {console.log((creditTotal - (creditTotal * (customer.supplier_commission || 0) / 100)).toFixed(2) - (debitTotal + prevDebit))}
-                                                            
+
                                                             {(creditTotal - (creditTotal * (customer.supplier_commission || 0) / 100)).toFixed(2) - (debitTotal + prevDebit) > 0 ? (
-                                                              <>
-                                                                <td className='border-end border-dark'>{((creditTotal - (creditTotal * (customer.supplier_commission || 0) / 100)).toFixed(2) - (debitTotal + prevDebit)).toFixed(2)}</td>
-                                                                <td style={{ borderRight: 0 }}></td>
-                                                              </>
+                                                                <>
+                                                                    <td className='border-end border-dark'>{((creditTotal - (creditTotal * (customer.supplier_commission || 0) / 100)).toFixed(2) - (debitTotal + prevDebit)).toFixed(2)}</td>
+                                                                    <td style={{ borderRight: 0 }}></td>
+                                                                </>
                                                             ) : (
-                                                              <>
-                                                                <td className='border-end border-dark'></td>
-                                                                <td style={{ borderRight: 0 }}>{Math.abs((debitTotal + prevDebit) - (creditTotal - (creditTotal * (customer.supplier_commission || 0) / 100))).toFixed(2)}</td>
-                                                              </>
+                                                                <>
+                                                                    <td className='border-end border-dark'></td>
+                                                                    <td style={{ borderRight: 0 }}>{Math.abs((debitTotal + prevDebit) - (creditTotal - (creditTotal * (customer.supplier_commission || 0) / 100))).toFixed(2)}</td>
+                                                                </>
                                                             )}
                                                         </tr>
                                                         <tr style={{ borderTop: '1px solid black', borderLeft: 0 }}>

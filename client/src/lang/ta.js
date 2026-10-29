@@ -529,7 +529,9 @@ const lang = {
     "summary_total_items": "மொத்த உருப்படிகள்",
     "summary_total_qty": "மொத்த அளவு",
     "summary_total_purchase": "மொத்த கொள்முதல்",
-    "summary_total_sales": "மொத்த விற்பனை"
+    "summary_total_sales": "மொத்த விற்பனை",
+    "expand_menu": "மெனுவை திறக்க",
+    "collapse_menu": "மெனுவை மூட"
 };
 
 export default lang;
