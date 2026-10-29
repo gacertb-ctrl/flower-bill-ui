@@ -401,7 +401,7 @@ const ReportPrintView = () => {
                                             <div className="col-12" style={{ borderBottom: '1px solid black' }}>
                                                 <div className="row text-center">
                                                     <div className="col-4">
-                                                        <img src="/amman.jpg" height="50" width="50" alt="Logo" style={{ opacity: 0.5 }} />
+                                                        <img src="/amman.jpg" height="100%" width="100%" alt="Logo" style={{ opacity: 0.5 }} />
                                                     </div>
                                                     <div className="col-8">
                                                         <h4>{t('ganthimathi')}</h4>
